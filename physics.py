@@ -104,12 +104,15 @@ class Quadruped:
         # Créer les os
         width_bone = 0.05
         density_bone = 3
-        self.body = Bone(world, x, y, 1.5, width_bone, density=density_bone)
-        self.back_thigh = Bone(world, x - 0.8, y - 0.5, width_bone, 0.5, density=density_bone)
-        self.back_shin = Bone(world, x - 0.8, y - 1.3, width_bone, 0.4, density=density_bone)
-        self.front_leg = Bone(world, x + 0.8, y - 0.7, width_bone, 0.6, density=density_bone)
+        thigh_height = 0.5
+        shin_height = 0.4
+        self.body = Bone(world, x, y, 1.1, width_bone, density=density_bone)
+        self.back_thigh = Bone(world, x - 0.8, y - 0.5, width_bone, thigh_height, density=density_bone) # cuisse
+        self.back_shin = Bone(world, x - 0.8, y - 1.3, width_bone, shin_height, density=density_bone) # tibia
+        self.front_thigh = Bone(world, x + 0.8, y - 0.5, width_bone, thigh_height, density=density_bone)
+        self.front_shin = Bone(world, x + 0.8, y - 1.3, width_bone, shin_height, density=density_bone)
 
-        self.bones = [self.body, self.back_thigh, self.back_shin, self.front_leg]
+        self.bones = [self.body, self.back_thigh, self.back_shin, self.front_thigh, self.front_shin]
 
         # Créer les 3 muscles
         self.muscle1 = Muscle(
@@ -125,12 +128,18 @@ class Quadruped:
         )
 
         self.muscle3 = Muscle(
-            world, self.body.body, self.front_leg.body,
-            (0.5, -0.15), (0, 0.3),
-            -math.pi / 2, math.pi / 4, max_torque=500
+            world, self.body.body, self.front_thigh.body,
+            (0.5, -0.15), (0, 0.25),
+            -math.pi / 2, math.pi / 4, max_torque=600
         )
 
-        self.muscles = [self.muscle1, self.muscle2, self.muscle3]
+        self.muscle4 = Muscle(
+            world, self.front_thigh.body, self.front_shin.body,
+            (0, -0.25), (0, 0.2),
+            -math.pi * 0.8, 0, max_torque=400
+        )
+
+        self.muscles = [self.muscle1, self.muscle2, self.muscle3, self.muscle4]
 
     def control_muscles(self, muscle_index, action):
         """

@@ -8,7 +8,7 @@ from display import Display
 def main():
     # Initialiser les systèmes (création des objets depuis physics.py et display.py)
     physics_world = PhysicsWorld(gravity=(0, -10))  # Vient de physics.py
-    display = Display(width=1200, height=700, title="Quadrupède - 3 muscles")  # Vient de display.py
+    display = Display(width=1200, height=700, title="Quadrupède muscles")  # Vient de display.py
     quadruped = Quadruped(physics_world, x=6, y=3)  # Vient de physics.py
 
     # Paramètres de simulation
@@ -30,26 +30,32 @@ def main():
         keys = pygame.key.get_pressed()
 
         # Relâcher tous les muscles (méthode de physics.py)
-        for i in range(3):
+        for i in range(4):
             quadruped.control_muscles(i, 'relax')
 
         # Muscle 1 (hanche arrière)
-        if keys[pygame.K_q]:
+        if keys[pygame.K_e]:
             quadruped.control_muscles(0, 'contract')  # Méthode de Quadruped (physics.py)
-        elif keys[pygame.K_a]:
+        elif keys[pygame.K_d]:
             quadruped.control_muscles(0, 'extend')
 
         # Muscle 2 (genou arrière)
-        if keys[pygame.K_w]:
+        if keys[pygame.K_z]:
             quadruped.control_muscles(1, 'contract')
         elif keys[pygame.K_s]:
             quadruped.control_muscles(1, 'extend')
 
         # Muscle 3 (épaule avant)
-        if keys[pygame.K_e]:
+        if keys[pygame.K_r]:
             quadruped.control_muscles(2, 'contract')
-        elif keys[pygame.K_d]:
+        elif keys[pygame.K_f]:
             quadruped.control_muscles(2, 'extend')
+
+        # Muscle 4 (coude avant)
+        if keys[pygame.K_t]:
+            quadruped.control_muscles(3, 'contract')
+        elif keys[pygame.K_g]:
+            quadruped.control_muscles(3, 'extend')
 
         # Mettre à jour la physique (méthodes de physics.py)
         quadruped.update()  # Met à jour les muscles
