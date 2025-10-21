@@ -38,7 +38,7 @@ class Bone:
         self.fixture = self.body.CreatePolygonFixture(
             box=(width / 2, height / 2),
             density=density,
-            friction=0.3
+            friction=0.5
         )
         self.width = width
         self.height = height
@@ -104,20 +104,21 @@ class Quadruped:
         # Créer les os
         width_bone = 0.05
         density_bone = 3
-        thigh_height = 0.5
+        thigh_height = 0.4
         shin_height = 0.4
         self.body = Bone(world, x, y, 1.1, width_bone, density=density_bone)
         self.back_thigh = Bone(world, x - 0.8, y - 0.5, width_bone, thigh_height, density=density_bone) # cuisse
         self.back_shin = Bone(world, x - 0.8, y - 1.3, width_bone, shin_height, density=density_bone) # tibia
         self.front_thigh = Bone(world, x + 0.8, y - 0.5, width_bone, thigh_height, density=density_bone)
         self.front_shin = Bone(world, x + 0.8, y - 1.3, width_bone, shin_height, density=density_bone)
+        self.neck = Bone(world, x + 0.9, y + 0.1, width_bone, 0.2, density=density_bone)
 
-        self.bones = [self.body, self.back_thigh, self.back_shin, self.front_thigh, self.front_shin]
+        self.bones = [self.body, self.back_thigh, self.back_shin, self.front_thigh, self.front_shin, self.neck  ]
 
         # Créer les 3 muscles
         self.muscle1 = Muscle(
             world, self.body.body, self.back_thigh.body,
-            (-0.5, -0.15), (0, 0.25),
+            (-0.5, -0.05), (0, 0.25),
             -math.pi / 2, math.pi / 4, max_torque=600
         )
 
@@ -129,7 +130,7 @@ class Quadruped:
 
         self.muscle3 = Muscle(
             world, self.body.body, self.front_thigh.body,
-            (0.5, -0.15), (0, 0.25),
+            (0.5, -0.05), (0, 0.25),
             -math.pi / 2, math.pi / 4, max_torque=600
         )
 
