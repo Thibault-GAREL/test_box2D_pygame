@@ -102,10 +102,12 @@ class Quadruped:
         world = physics_world.world
 
         # Créer les os
-        self.body = Bone(world, x, y, 1.0, 0.3, density=10)
-        self.back_thigh = Bone(world, x - 0.8, y - 0.5, 0.15, 0.5, density=3)
-        self.back_shin = Bone(world, x - 0.8, y - 1.3, 0.15, 0.4, density=2)
-        self.front_leg = Bone(world, x + 0.8, y - 0.7, 0.15, 0.6, density=3)
+        width_bone = 0.05
+        density_bone = 3
+        self.body = Bone(world, x, y, 1.5, width_bone, density=density_bone)
+        self.back_thigh = Bone(world, x - 0.8, y - 0.5, width_bone, 0.5, density=density_bone)
+        self.back_shin = Bone(world, x - 0.8, y - 1.3, width_bone, 0.4, density=density_bone)
+        self.front_leg = Bone(world, x + 0.8, y - 0.7, width_bone, 0.6, density=density_bone)
 
         self.bones = [self.body, self.back_thigh, self.back_shin, self.front_leg]
 
