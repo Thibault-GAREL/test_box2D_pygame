@@ -10,16 +10,17 @@ class PhysicsWorld:
     """Gestionnaire du monde physique Box2D"""
 
     def __init__(self, gravity=(0, -10)):
-        self.world = b2World(gravity=gravity, doSleep=True)
+        self.world = b2World(gravity=gravity, doSleep=True) # Do sleep pour ne pas calculer les objets qui ne bouge plus
         self.ground = None
         self.create_ground()
 
     def create_ground(self):
         """Crée le sol"""
         self.ground = self.world.CreateStaticBody(
-            position=(0, 1),
-            shapes=b2PolygonShape(box=(20, 0.5))
+            position=(0, 0),
+            shapes=b2PolygonShape(box=(20, 0.5)) # rect de largeur 40 (en gros on part du centre et on fait 20 de chaque côté)
         )
+        self.ground.fixtures[0].friction = 0.8
 
     def step(self, time_step, vel_iterations=10, pos_iterations=10):
         """Avance la simulation d'un pas"""
@@ -94,7 +95,7 @@ class Muscle:
 
 
 class Quadruped:
-    """Représente un quadrupède simple avec 3 muscles"""
+    """Représente un quadrupède simple avec des muscles"""
 
     def __init__(self, physics_world, x=6, y=3):
         self.physics_world = physics_world
@@ -160,167 +161,3 @@ class Quadruped:
         return state
 
 
-# ============================================
-# display.py - Gestion de l'affichage Pygame
-# ============================================
-
-import pygame
-
-
-class Display:
-    """Gestionnaire de l'affichage avec Pygame"""
-
-    def __init__(self, width=1200, height=700, title="Quadrupède"):
-        pygame.init()
-        self.width = width
-        self.height = height
-        self.screen = pygame.display.set_mode((width, height))
-        pygame.display.set_caption(title)
-        self.clock = pygame.time.Clock()
-        self.font = pygame.font.Font(None, 24)
-        self.PPM = 100.0  # Pixels par mètre
-
-    def to_screen(self, pos):
-        """Convertit les coordonnées Box2D en coordonnées Pygame"""
-        return (int(pos[0] * self.PPM), int(self.height - pos[1] * self.PPM))
-
-    def clear(self, color=(30, 30, 40)):
-        """Efface l'écran"""
-        self.screen.fill(color)
-
-    def draw_ground(self, ground_body):
-        """Dessine le sol"""
-        vertices = [(ground_body.transform * v) * self.PPM
-                    for v in ground_body.fixtures[0].shape.vertices]
-        vertices = [(v[0], self.height - v[1]) for v in vertices]
-        pygame.draw.polygon(self.screen, (100, 150, 100), vertices)
-
-    def draw_bone(self, bone, color=(255, 255, 255)):
-        """Dessine un os (rectangle blanc)"""
-        vertices = [(bone.body.transform * v) * self.PPM
-                    for v in bone.fixture.shape.vertices]
-        vertices = [(v[0], self.height - v[1]) for v in vertices]
-        pygame.draw.polygon(self.screen, color, vertices)
-
-    def draw_muscle(self, muscle, color=(255, 0, 0)):
-        """Dessine un muscle (ligne rouge)"""
-        # Position des points d'ancrage
-        pos_a = muscle.body_a.transform * muscle.anchor_a
-        pos_b = muscle.body_b.transform * muscle.anchor_b
-
-        # Convertir en coordonnées écran
-        screen_a = self.to_screen(pos_a)
-        screen_b = self.to_screen(pos_b)
-
-        # Dessiner la ligne et les points
-        pygame.draw.line(self.screen, color, screen_a, screen_b, 4)
-        pygame.draw.circle(self.screen, (200, 0, 0), screen_a, 5)
-        pygame.draw.circle(self.screen, (200, 0, 0), screen_b, 5)
-
-    def draw_text(self, text, position, color=(255, 255, 255)):
-        """Affiche du texte à l'écran"""
-        surface = self.font.render(text, True, color)
-        self.screen.blit(surface, position)
-
-    def draw_instructions(self):
-        """Affiche les instructions de contrôle"""
-        instructions = [
-            "Contrôles des 3 muscles :",
-            "Q/A : Muscle 1 (hanche arrière)",
-            "W/S : Muscle 2 (genou arrière)",
-            "E/D : Muscle 3 (épaule avant)",
-            "ESC : Quitter"
-        ]
-
-        for i, text in enumerate(instructions):
-            self.draw_text(text, (10, 10 + i * 25))
-
-    def update(self):
-        """Rafraîchit l'affichage"""
-        pygame.display.flip()
-
-    def tick(self, fps=60):
-        """Limite le framerate"""
-        self.clock.tick(fps)
-
-    def quit(self):
-        """Ferme Pygame"""
-        pygame.quit()
-
-
-# ============================================
-# main.py - Boucle principale
-# ============================================
-
-
-def main():
-    # Initialiser les systèmes
-    physics_world = PhysicsWorld(gravity=(0, -10))
-    display = Display(width=1200, height=700, title="Quadrupède - 3 muscles")
-    quadruped = Quadruped(physics_world, x=6, y=3)
-
-    # Paramètres de simulation
-    TARGET_FPS = 60
-    TIME_STEP = 1.0 / TARGET_FPS
-
-    # Boucle principale
-    running = True
-    while running:
-        # Gestion des événements
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    running = False
-
-        # Gestion des touches (contrôle manuel)
-        keys = pygame.key.get_pressed()
-
-        # Relâcher tous les muscles
-        for i in range(3):
-            quadruped.control_muscles(i, 'relax')
-
-        # Muscle 1 (hanche arrière)
-        if keys[pygame.K_q]:
-            quadruped.control_muscles(0, 'contract')
-        elif keys[pygame.K_a]:
-            quadruped.control_muscles(0, 'extend')
-
-        # Muscle 2 (genou arrière)
-        if keys[pygame.K_w]:
-            quadruped.control_muscles(1, 'contract')
-        elif keys[pygame.K_s]:
-            quadruped.control_muscles(1, 'extend')
-
-        # Muscle 3 (épaule avant)
-        if keys[pygame.K_e]:
-            quadruped.control_muscles(2, 'contract')
-        elif keys[pygame.K_d]:
-            quadruped.control_muscles(2, 'extend')
-
-        # Mettre à jour la physique
-        quadruped.update()
-        physics_world.step(TIME_STEP)
-
-        # Affichage
-        display.clear()
-        display.draw_ground(physics_world.ground)
-
-        # Dessiner les os
-        for bone in quadruped.bones:
-            display.draw_bone(bone)
-
-        # Dessiner les muscles
-        for muscle in quadruped.muscles:
-            display.draw_muscle(muscle)
-
-        display.draw_instructions()
-        display.update()
-        display.tick(TARGET_FPS)
-
-    display.quit()
-
-
-if __name__ == "__main__":
-    main()
