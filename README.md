@@ -25,6 +25,7 @@ This project is a try to understand how to use box2D with pygame
 
 ## ⚙️ How it works
 
+Look for how the embedding are initialise for a Transformer
 Make a better display
 We need to reduce the angular speed and make a score for the power use
 
