@@ -114,8 +114,9 @@ class Quadruped:
         self.neck = Bone(world, x + 0.9, y + 0.1, width_bone, 0.4, density=density_bone)
         self.tail_bottom = Bone(world, x - 0.9, y + 0.1, width_bone, 0.4, density=density_bone)
         self.tail_mid = Bone(world, x - 1, y + 0.3, width_bone, 0.2, density=density_bone)
+        self.tail_high = Bone(world, x - 1.1, y + 0.4, width_bone, 0.2, density=density_bone)
 
-        self.bones = [self.body, self.back_thigh, self.back_shin, self.front_thigh, self.front_shin, self.neck, self.tail_bottom, self.tail_mid]
+        self.bones = [self.body, self.back_thigh, self.back_shin, self.front_thigh, self.front_shin, self.neck, self.tail_bottom, self.tail_mid, self.tail_high]
 
         # Créer les 3 muscles
         self.muscle1 = Muscle(
@@ -156,10 +157,16 @@ class Quadruped:
         self.muscle7 = Muscle(
             world, self.tail_bottom.body, self.tail_mid.body,
             (0, -0.2), (0, 0.15),
-            -math.pi * 0.5, -math.pi * 0.6, max_torque=40
+            -math.pi * 0.5, -math.pi * 0.5, max_torque=40
         )
 
-        self.muscles = [self.muscle1, self.muscle2, self.muscle3, self.muscle4, self.muscle5, self.muscle6, self.muscle7]
+        self.muscle8 = Muscle(
+            world, self.tail_mid.body, self.tail_high.body,
+            (0, -0.15), (0, 0.15),
+            -math.pi * 0.4, -math.pi * 0.4, max_torque=40
+        )
+
+        self.muscles = [self.muscle1, self.muscle2, self.muscle3, self.muscle4, self.muscle5, self.muscle6, self.muscle7, self.muscle8]
 
     def control_muscles(self, muscle_index, action):
         """
