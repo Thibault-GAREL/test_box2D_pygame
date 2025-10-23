@@ -3,13 +3,17 @@ import pygame
 from physics import PhysicsWorld, Quadruped
 # Import depuis display.py
 from display import Display
-
+# Import du système d'overlay
+from overlay import VisualOverlay
 
 def main():
     # Initialiser les systèmes (création des objets depuis physics.py et display.py)
     physics_world = PhysicsWorld(gravity=(0, -10))  # Vient de physics.py
     display = Display(width=1200, height=700, title="Quadrupède muscles")  # Vient de display.py
     quadruped = Quadruped(physics_world, x=6, y=3)  # Vient de physics.py
+
+    # Initialiser le système d'overlay visuel
+    overlay = VisualOverlay(display)
 
     # Paramètres de simulation
     TARGET_FPS = 60
@@ -25,6 +29,10 @@ def main():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     running = False
+                # Basculer entre mode texture et skeleton avec TAB
+                elif event.key == pygame.K_TAB:
+                    overlay.toggle_mode()
+
 
         # Gestion des touches (contrôle manuel)
         keys = pygame.key.get_pressed()
@@ -65,15 +73,20 @@ def main():
         display.clear()  # Efface l'écran
         display.draw_ground(physics_world.ground)  # Dessine le sol
 
-        # Dessiner les os (boucle sur les os du quadruped)
-        for bone in quadruped.bones:
-            display.draw_bone(bone)  # Méthode de Display
+        # Utiliser le système d'overlay pour dessiner le quadrupède
+        overlay.draw_quadruped(quadruped)
 
-        # Dessiner les muscles (boucle sur les muscles du quadruped)
-        for muscle in quadruped.muscles:
-            display.draw_muscle(muscle)  # Méthode de Display
+        # # Dessiner les os (boucle sur les os du quadruped)
+        # for bone in quadruped.bones:
+        #     display.draw_bone(bone)  # Méthode de Display
+        #
+        # # Dessiner les muscles (boucle sur les muscles du quadruped)
+        # for muscle in quadruped.muscles:
+        #     display.draw_muscle(muscle)  # Méthode de Display
 
         display.draw_instructions()  # Affiche les instructions
+        overlay.draw_status()
+
         display.update()  # Rafraîchit l'écran
         display.tick(TARGET_FPS)  # Limite le FPS
 
