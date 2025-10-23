@@ -31,6 +31,21 @@ class VisualOverlay:
         """Bascule entre mode skeleton et mode texture"""
         self.show_skeleton = not self.show_skeleton
 
+    def draw_rounded_bone(self, bone, color):
+        """Dessine un os avec des bords arrondis"""
+        vertices = [(bone.body.transform * v) * self.display.PPM
+                    for v in bone.fixture.shape.vertices]
+        vertices = [(v[0], self.display.height - v[1]) for v in vertices]
+
+        if len(vertices) >= 4:
+            # Dessiner le rectangle principal
+            pygame.draw.polygon(self.display.screen, color, vertices)
+
+            # Ajouter des cercles aux coins pour les bords arrondis
+            radius = 3  # Rayon des coins arrondis
+            for vertex in vertices:
+                pygame.draw.circle(self.display.screen, color, (int(vertex[0]), int(vertex[1])), radius)
+
     def draw_textured_bone(self, bone, color, add_shine=True):
         """Dessine un os avec texture et effets visuels"""
         vertices = [(bone.body.transform * v) * self.display.PPM
@@ -54,7 +69,7 @@ class VisualOverlay:
                         (vertices[2][1] + vertices[3][1]) // 2)
             pygame.draw.line(self.display.screen, shine_color, mid_top1, mid_top2, 2)
 
-    def draw_textured_muscle(self, muscle, strength=0.0):
+    def draw_textured_muscle(self, muscle, skip_glow=False):
         """Dessine un muscle avec effet de tension visuelle"""
         pos_a = muscle.body_a.transform * muscle.anchor_a
         pos_b = muscle.body_b.transform * muscle.anchor_b
@@ -67,8 +82,10 @@ class VisualOverlay:
             # Muscle actif
             color = self.colors['muscle_active']
             thickness = 6
-            # Effet de glow pour les muscles actifs
-            self.draw_glow_line(screen_a, screen_b, color, radius=15)
+            # Effet de glow pour les muscles actifs (seulement si pas déjà fait)
+            if not skip_glow:
+                glow_radius = 25 if self.show_skeleton else 15
+                self.draw_glow_line(screen_a, screen_b, color, radius=glow_radius)
         else:
             # Muscle relâché
             color = self.colors['muscle_relaxed']
@@ -77,20 +94,25 @@ class VisualOverlay:
         # Ligne principale du muscle
         pygame.draw.line(self.display.screen, color, screen_a, screen_b, thickness)
 
-        # Articulations aux extrémités
-        joint_color = self.colors['joint']
-        pygame.draw.circle(self.display.screen, joint_color, screen_a, 6)
-        pygame.draw.circle(self.display.screen, joint_color, screen_b, 6)
+        # Articulations aux extrémités (seulement en mode TEXTURE)
+        if not self.show_skeleton:
+            joint_color = self.colors['joint']
+            pygame.draw.circle(self.display.screen, joint_color, screen_a, 6)
+            pygame.draw.circle(self.display.screen, joint_color, screen_b, 6)
+
+        # Petits cercles rouges au centre (dans les deux modes)
         pygame.draw.circle(self.display.screen, color, screen_a, 4)
         pygame.draw.circle(self.display.screen, color, screen_b, 4)
 
     def draw_glow_line(self, pos_a, pos_b, color, radius=10):
         """Dessine un effet de glow autour d'une ligne"""
-        # Plusieurs cercles avec alpha décroissant pour l'effet de glow
-        steps = 3
+        # Plus d'étapes et alpha plus élevé en mode skeleton
+        steps = 5 if self.show_skeleton else 3
+        base_alpha = 50 if self.show_skeleton else 30
+
         for i in range(steps):
-            alpha = 30 - i * 10
-            glow_radius = radius - i * 3
+            alpha = base_alpha - i * (10 if self.show_skeleton else 10)
+            glow_radius = radius - i * 4
             glow_color = (*color, alpha)
 
             # Glow au point A
@@ -106,8 +128,8 @@ class VisualOverlay:
         # Dessiner les os
         for i, bone in enumerate(quadruped.bones):
             if self.show_skeleton:
-                # Mode DEBUG - Affichage simple avec méthode originale
-                self.display.draw_bone(bone)
+                # Mode SKELETON - Affichage avec bords arrondis
+                self.draw_rounded_bone(bone, (255, 255, 255))
             else:
                 # Mode TEXTURE - Affichage stylisé
                 if bone == quadruped.body:
@@ -119,18 +141,23 @@ class VisualOverlay:
                 else:
                     self.draw_textured_bone(bone, self.colors['legs'], add_shine=True)
 
-        # Dessiner les muscles
+        # Pré-calculer les glows (sans les dessiner encore)
         for muscle in quadruped.muscles:
-            if self.show_skeleton:
-                # Mode DEBUG - Affichage simple avec méthode originale
-                self.display.draw_muscle(muscle)
-            else:
-                # Mode TEXTURE
-                self.draw_textured_muscle(muscle)
+            if abs(muscle.target_speed) > 0.1:
+                pos_a = muscle.body_a.transform * muscle.anchor_a
+                pos_b = muscle.body_b.transform * muscle.anchor_b
+                screen_a = self.display.to_screen(pos_a)
+                screen_b = self.display.to_screen(pos_b)
+                color = self.colors['muscle_active']
+                glow_radius = 25 if self.show_skeleton else 15
+                self.draw_glow_line(screen_a, screen_b, color, radius=glow_radius)
 
-        # Appliquer les effets de glow (seulement en mode texture)
-        if not self.show_skeleton:
-            self.display.screen.blit(self.glow_surface, (0, 0))
+        # Appliquer les effets de glow AVANT de dessiner les muscles
+        self.display.screen.blit(self.glow_surface, (0, 0))
+
+        # Dessiner les muscles par-dessus le glow
+        for muscle in quadruped.muscles:
+            self.draw_textured_muscle(muscle, skip_glow=True)
 
     def draw_status(self):
         """Affiche le statut de l'overlay"""
