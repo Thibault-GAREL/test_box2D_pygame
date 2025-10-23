@@ -122,7 +122,7 @@ class Quadruped:
         self.muscle1 = Muscle(
             world, self.body.body, self.back_thigh.body,
             (-0.5, -0.05), (0, 0.25),
-            -math.pi / 2, math.pi / 4, max_torque=600
+            -math.pi / 4, math.pi / 4, max_torque=600
         )
 
         self.muscle2 = Muscle(
@@ -134,7 +134,7 @@ class Quadruped:
         self.muscle3 = Muscle(
             world, self.body.body, self.front_thigh.body,
             (0.5, -0.05), (0, 0.25),
-            -math.pi / 2, math.pi / 4, max_torque=600
+            -math.pi / 4, math.pi / 4, max_torque=600
         )
 
         self.muscle4 = Muscle(
@@ -152,7 +152,7 @@ class Quadruped:
         self.muscle6 = Muscle(
             world, self.body.body, self.tail_bottom.body,
             (-0.55, 0.05), (0, 0.2),
-            -math.pi * 0.3, -math.pi * 0.3, max_torque=40
+            -math.pi * 0.6, -math.pi * 0.6, max_torque=40
         )
         self.muscle7 = Muscle(
             world, self.tail_bottom.body, self.tail_mid.body,

@@ -101,8 +101,8 @@ class VisualOverlay:
             pygame.draw.circle(self.display.screen, joint_color, screen_b, 6)
 
         # Petits cercles rouges au centre (dans les deux modes)
-        pygame.draw.circle(self.display.screen, color, screen_a, 4)
-        pygame.draw.circle(self.display.screen, color, screen_b, 4)
+        pygame.draw.circle(self.display.screen, color, screen_a, 5)
+        pygame.draw.circle(self.display.screen, color, screen_b, 5)
 
     def draw_glow_line(self, pos_a, pos_b, color, radius=10):
         """Dessine un effet de glow autour d'une ligne"""
