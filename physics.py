@@ -48,7 +48,8 @@ class Muscle:
     """Représente un muscle (joint moteur entre deux os)"""
 
     def __init__(self, world, body_a, body_b, anchor_a, anchor_b,
-                 min_angle, max_angle, max_torque=500, max_speed=5.0):
+                 min_angle, max_angle, max_torque=500, max_speed=3.0):
+
         joint_def = b2RevoluteJointDef(
             bodyA=body_a,
             bodyB=body_b,
@@ -122,7 +123,7 @@ class Quadruped:
         self.muscle1 = Muscle(
             world, self.body.body, self.back_thigh.body,
             (-0.5, -0.05), (0, 0.25),
-            -math.pi / 4, math.pi / 4, max_torque=600
+            -math.pi / 8, math.pi / 4, max_torque=600
         )
 
         self.muscle2 = Muscle(
