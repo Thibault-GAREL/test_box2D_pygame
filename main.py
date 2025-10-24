@@ -65,6 +65,11 @@ def main():
         elif keys[pygame.K_g]:
             quadruped.control_muscles(3, 'extend')
 
+        if quadruped.is_upside_down():
+            # Le quadrupède est retourné !
+            display.draw_text("RETOURNÉ!", (display.width // 2 - 50, 50), (255, 0, 0))
+            print("Retourné")
+
         # Mettre à jour la physique (méthodes de physics.py)
         quadruped.update()  # Met à jour les muscles
         physics_world.step(TIME_STEP)  # Avance la simulation Box2D

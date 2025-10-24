@@ -199,3 +199,17 @@ class Quadruped:
         return state
 
 
+    def is_upside_down(self, threshold=math.pi / 4):
+        """
+        Vérifie si le quadrupède est retourné (dos au sol)
+        threshold: angle en radians (par défaut π/4 = 45°)
+        Retourne True si l'angle du corps dépasse le seuil
+        """
+        angle = self.body.body.angle % (2 * math.pi)
+
+        # Normaliser l'angle entre -π et π
+        if angle > math.pi:
+            angle -= 2 * math.pi
+
+        # Le quadrupède est retourné si l'angle est proche de ±π (180°)
+        return abs(abs(angle) - math.pi) < threshold
