@@ -104,9 +104,9 @@ class Quadruped:
 
         # Créer les os
         width_bone = 0.05
-        body_height = 1.6
+        body_height = 1.3
         density_bone = 3
-        thigh_height = 0.4
+        thigh_height = 0.5
         shin_height = 0.4
         foot_height = 0.2
         neck_height = 0.4
@@ -129,37 +129,37 @@ class Quadruped:
         self.muscle1 = Muscle(
             world, self.body.body, self.front_thigh.body,
             (body_height / 2, -width_bone), (0, thigh_height / 2 + marge),
-            -math.pi / 4, 0, max_torque=600
+            -math.pi * 0.45, math.pi * 0.1, max_torque=600
         )
 
         self.muscle2 = Muscle(
             world, self.front_thigh.body, self.front_shin.body,
             (0, -thigh_height / 2 + marge), (0, shin_height / 2 + marge),
-            0, math.pi * 0.5, max_torque=400
+            0, math.pi * 0.8, max_torque=400
         )
 
         self.muscle3 = Muscle(
             world, self.front_shin.body, self.front_foot.body,
             (width_bone, -shin_height / 2), (width_bone, foot_height / 2 + marge),
-            0, math.pi / 3, max_torque=600
+            math.pi * 0.2, math.pi * 0.8, max_torque=300
         )
 
         self.muscle4 = Muscle(
             world, self.body.body, self.back_thigh.body,
             (-body_height/2, -width_bone), (0, thigh_height/2 + marge),
-            -math.pi / 4, math.pi / 8, max_torque=600
+            0, math.pi * 0.4, max_torque=600
         )
 
         self.muscle5 = Muscle(
             world, self.back_thigh.body, self.back_shin.body,
             (0, -thigh_height/2 + marge), (0, shin_height/2 + marge),
-            -math.pi * 0.5, 0, max_torque=400
+            -math.pi * 0.7, 0, max_torque=400
         )
 
         self.muscle6 = Muscle(
             world, self.back_shin.body, self.back_foot.body,
             (width_bone, -shin_height / 2), (width_bone, foot_height / 2 + marge),
-            -math.pi / 4, math.pi / 8, max_torque=600
+            math.pi * 0.2, math.pi * 0.8, max_torque=300
         )
 
 
