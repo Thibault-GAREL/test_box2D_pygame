@@ -112,14 +112,14 @@ class Quadruped:
         neck_height = 0.4
         tail_height = 0.4
         marge = 0.05
-        self.body = Bone(world, x, y, body_height, width_bone, density=density_bone)
+        self.body = Bone(world, x, y, body_height, width_bone, density=density_bone+9)
         self.back_thigh = Bone(world, x - 0.8, y - 0.5, width_bone, thigh_height, density=density_bone) # cuisse
         self.back_shin = Bone(world, x - 0.8, y - 1.3, width_bone, shin_height, density=density_bone) # tibia
         self.back_foot = Bone(world, x - 0.7, y - 1.5, width_bone, foot_height, density=density_bone)
         self.front_thigh = Bone(world, x + 0.8, y - 0.5, width_bone, thigh_height, density=density_bone)
         self.front_shin = Bone(world, x + 0.8, y - 1.3, width_bone, shin_height, density=density_bone)
         self.front_foot = Bone(world, x + 0.7, y - 1.5, width_bone, foot_height, density=density_bone)
-        self.neck = Bone(world, x + 0.9, y + 0.1, width_bone, neck_height, density=density_bone)
+        self.neck = Bone(world, x + 0.9, y + 0.1, width_bone, neck_height, density=density_bone+13)
         self.tail_bottom = Bone(world, x - 0.9, y + 0.1, width_bone, tail_height, density=density_bone)
         self.tail_mid = Bone(world, x - 1, y + 0.3, width_bone, tail_height/2, density=density_bone)
         self.tail_high = Bone(world, x - 1.1, y + 0.4, width_bone, tail_height/2, density=density_bone)
