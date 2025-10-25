@@ -142,10 +142,12 @@ class VisualOverlay:
         print(f"🔄 Mode changé : {mode_names[self.render_mode]}")
 
     def get_bone_vertices(self, bone):
-        """Récupère les vertices d'un os en coordonnées écran"""
+        """Récupère les vertices d'un os en coordonnées écran avec offset caméra"""
         vertices = [(bone.body.transform * v) * self.display.PPM
                     for v in bone.fixture.shape.vertices]
-        vertices = [(v[0], self.display.height - v[1]) for v in vertices]
+        vertices = [(v[0] - self.display.camera_x * self.display.PPM,
+                     self.display.height - (v[1] - self.display.camera_y * self.display.PPM))
+                    for v in vertices]
         return vertices
 
     # ==================== MODE IMAGE ====================

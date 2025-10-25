@@ -1,4 +1,3 @@
-
 # ============================================
 # display.py - Gestion de l'affichage Pygame
 # ============================================
@@ -19,9 +18,33 @@ class Display:
         self.font = pygame.font.Font(None, 24)
         self.PPM = 100.0  # Pixels par mètre
 
+        # Système de caméra
+        self.camera_x = 0.0  # Offset horizontal de la caméra (en mètres)
+        self.camera_y = 0.0  # Offset vertical de la caméra (en mètres)
+        self.camera_speed = 0.1  # Vitesse de déplacement de la caméra
+        self.follow_mode = False  # Mode suivi automatique du quadrupède
+
     def to_screen(self, pos):
-        """Convertit les coordonnées Box2D en coordonnées Pygame"""
-        return (int(pos[0] * self.PPM), int(self.height - pos[1] * self.PPM))
+        """Convertit les coordonnées Box2D en coordonnées Pygame avec offset caméra"""
+        return (int((pos[0] - self.camera_x) * self.PPM),
+                int(self.height - (pos[1] - self.camera_y) * self.PPM))
+
+    def move_camera(self, dx, dy):
+        """Déplace la caméra manuellement"""
+        self.camera_x += dx
+        self.camera_y += dy
+
+    def follow_target(self, target_pos, smoothness=0.1):
+        """Fait suivre la caméra à une position cible (suivi fluide)"""
+        if self.follow_mode:
+            # Interpolation linéaire pour un mouvement fluide
+            self.camera_x += (target_pos[0] - 6 - self.camera_x) * smoothness
+            self.camera_y += (target_pos[1] - 3.5 - self.camera_y) * smoothness
+
+    def toggle_follow_mode(self):
+        """Active/désactive le mode suivi automatique"""
+        self.follow_mode = not self.follow_mode
+        return self.follow_mode
 
     def clear(self, color=(30, 30, 40)):
         """Efface l'écran"""
@@ -31,14 +54,16 @@ class Display:
         """Dessine le sol"""
         vertices = [(ground_body.transform * v) * self.PPM
                     for v in ground_body.fixtures[0].shape.vertices]
-        vertices = [(v[0], self.height - v[1]) for v in vertices]
+        vertices = [(v[0] - self.camera_x * self.PPM, self.height - (v[1] - self.camera_y * self.PPM))
+                    for v in vertices]
         pygame.draw.polygon(self.screen, (100, 150, 100), vertices)
 
     def draw_bone(self, bone, color=(255, 255, 255)):
         """Dessine un os (rectangle blanc)"""
         vertices = [(bone.body.transform * v) * self.PPM
                     for v in bone.fixture.shape.vertices]
-        vertices = [(v[0], self.height - v[1]) for v in vertices]
+        vertices = [(v[0] - self.camera_x * self.PPM, self.height - (v[1] - self.camera_y * self.PPM))
+                    for v in vertices]
         pygame.draw.polygon(self.screen, color, vertices)
 
     def draw_muscle(self, muscle, color=(255, 0, 0)):
@@ -64,15 +89,25 @@ class Display:
     def draw_instructions(self):
         """Affiche les instructions de contrôle"""
         instructions = [
-            "Contrôles des 3 muscles :",
-            "Q/A : Muscle 1 (hanche arrière)",
-            "W/S : Muscle 2 (genou arrière)",
-            "E/D : Muscle 3 (épaule avant)",
-            "ESC : Quitter"
+            "Contrôles des muscles :",
+            "R/F : Muscle 1 | T/G : Muscle 2 | Y/H : Muscle 3",
+            "E/D : Muscle 4 | Z/S : Muscle 5 | A/Q : Muscle 6",
+            "─────────────────────────────",
+            "Caméra: Flèches directionnelles",
+            "F1: Mode suivi AUTO/MANUEL",
+            "TAB: Changer mode visuel | ESC: Quitter"
         ]
 
         for i, text in enumerate(instructions):
             self.draw_text(text, (10, 10 + i * 25))
+
+    def draw_camera_info(self):
+        """Affiche les informations de la caméra"""
+        mode_text = "SUIVI AUTO" if self.follow_mode else "MANUEL"
+        color = (100, 255, 100) if self.follow_mode else (255, 150, 100)
+        self.draw_text(f"Caméra: {mode_text}", (self.width - 200, 10), color)
+        self.draw_text(f"X: {self.camera_x:.1f}m Y: {self.camera_y:.1f}m",
+                       (self.width - 200, 35), (200, 200, 200))
 
     def update(self):
         """Rafraîchit l'affichage"""

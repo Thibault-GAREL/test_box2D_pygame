@@ -33,9 +33,24 @@ def main():
                 # Basculer entre les 3 modes avec TAB
                 elif event.key == pygame.K_TAB:
                     overlay.toggle_mode()
+                # Basculer le mode suivi de caméra avec F1
+                elif event.key == pygame.K_F1:
+                    follow = display.toggle_follow_mode()
+                    print(f"📷 Mode caméra: {'SUIVI AUTO' if follow else 'MANUEL'}")
 
         # Gestion des touches (contrôle manuel)
         keys = pygame.key.get_pressed()
+
+        # ===== CONTRÔLES CAMÉRA (flèches directionnelles) =====
+        if not display.follow_mode:  # Seulement en mode manuel
+            if keys[pygame.K_LEFT]:
+                display.move_camera(-display.camera_speed, 0)
+            if keys[pygame.K_RIGHT]:
+                display.move_camera(display.camera_speed, 0)
+            if keys[pygame.K_UP]:
+                display.move_camera(0, display.camera_speed)
+            if keys[pygame.K_DOWN]:
+                display.move_camera(0, -display.camera_speed)
 
         # Relâcher tous les muscles
         for i in range(6):
@@ -82,6 +97,12 @@ def main():
         quadruped.update()
         physics_world.step(TIME_STEP)
 
+        # ===== MISE À JOUR CAMÉRA =====
+        # En mode suivi automatique, la caméra suit le corps du quadrupède
+        if display.follow_mode:
+            body_pos = quadruped.body.body.position
+            display.follow_target(body_pos, smoothness=0.08)
+
         # === AFFICHAGE ===
         display.clear()
         display.draw_ground(physics_world.ground)
@@ -91,6 +112,7 @@ def main():
         overlay.draw_quadruped(quadruped)
 
         display.draw_instructions()
+        display.draw_camera_info()  # Affiche les infos de caméra
         overlay.draw_status()  # Affiche le mode actuel
 
         display.update()
