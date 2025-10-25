@@ -38,32 +38,42 @@ def main():
         keys = pygame.key.get_pressed()
 
         # Relâcher tous les muscles (méthode de physics.py)
-        for i in range(4):
+        for i in range(6):
             quadruped.control_muscles(i, 'relax')
 
         # Muscle 1 (hanche arrière)
-        if keys[pygame.K_e]:
+        if keys[pygame.K_r]:
             quadruped.control_muscles(0, 'contract')  # Méthode de Quadruped (physics.py)
-        elif keys[pygame.K_d]:
+        elif keys[pygame.K_f]:
             quadruped.control_muscles(0, 'extend')
 
         # Muscle 2 (genou arrière)
-        if keys[pygame.K_z]:
+        if keys[pygame.K_t]:
             quadruped.control_muscles(1, 'contract')
-        elif keys[pygame.K_s]:
+        elif keys[pygame.K_g]:
             quadruped.control_muscles(1, 'extend')
 
         # Muscle 3 (épaule avant)
-        if keys[pygame.K_r]:
+        if keys[pygame.K_y]:
             quadruped.control_muscles(2, 'contract')
-        elif keys[pygame.K_f]:
+        elif keys[pygame.K_h]:
             quadruped.control_muscles(2, 'extend')
 
         # Muscle 4 (coude avant)
-        if keys[pygame.K_t]:
+        if keys[pygame.K_e]:
             quadruped.control_muscles(3, 'contract')
-        elif keys[pygame.K_g]:
+        elif keys[pygame.K_d]:
             quadruped.control_muscles(3, 'extend')
+
+        if keys[pygame.K_z]:
+            quadruped.control_muscles(4, 'contract')
+        elif keys[pygame.K_s]:
+            quadruped.control_muscles(4, 'extend')
+
+        if keys[pygame.K_a]:
+            quadruped.control_muscles(5, 'contract')
+        elif keys[pygame.K_q]:
+            quadruped.control_muscles(5, 'extend')
 
         if quadruped.is_upside_down():
             # Le quadrupède est retourné !
