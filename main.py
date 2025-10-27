@@ -1,3 +1,5 @@
+import random
+
 import pygame
 # Import depuis physics.py
 from physics import PhysicsWorld, Quadruped
@@ -5,8 +7,6 @@ from physics import PhysicsWorld, Quadruped
 from display import Display
 # Import du système d'overlay AMÉLIORÉ
 from overlay import VisualOverlay
-# Import du système d'herbe
-from grass import GrassField
 # Import du système de parallaxe
 from parallax import ParallaxManager
 
@@ -21,9 +21,6 @@ def main():
     # IMPORTANT : cat_texture.png doit être dans le même dossier !
     overlay = VisualOverlay(display, cat_image_path="cat_texture.png")
 
-    # Initialiser le champ d'herbe
-    grass_field = GrassField(width=40, density=30)
-
     # Initialiser le système de parallaxe
     parallax = ParallaxManager()
 
@@ -35,26 +32,38 @@ def main():
     # parallax.add_layer("mountains.png", depth=0.2, y_position=3, repeat=True)
 
     # Éléments qui se répètent avec espacement ALÉATOIRE:
-    parallax.add_layer("img/cloud.png", depth=0.07, x_position=-1, y_position=5, repeat=True, repeat_spacing=(9, 12))
-    parallax.add_layer("img/cloud2.png", depth=0.05, x_position=5, y_position=4, repeat=True, repeat_spacing=(5, 7))
+    parallax.add_layer("img/cloud.png", depth=0.07, x_position=-1, y_position=6, repeat=True, repeat_spacing=(9, 12), scale=0.4)
+    parallax.add_layer("img/cloud2.png", depth=0.05, x_position=5, y_position=5, repeat=True, repeat_spacing=(5, 7), scale=0.3)
 
     parallax.add_layer("img/mountain2.png", depth=0.1, x_position=0, y_position=0, repeat=True, repeat_spacing=(9, 12))
 
-    parallax.add_layer("img/hill1.png", depth=0.15, x_position=-4, y_position=-0.3, repeat=True, repeat_spacing=(6, 10))
-    parallax.add_layer("img/hill2.png", depth=0.14, x_position=15, y_position=-0.3, repeat=True, repeat_spacing=(5, 10))
-    parallax.add_layer("img/hill3.png", depth=0.19, x_position=-15, y_position=-0.3, repeat=True, repeat_spacing=(4, 8))
-    parallax.add_layer("img/hill4.png", depth=0.23, x_position=8, y_position=-0.3, repeat=True, repeat_spacing=(6, 8))
-    parallax.add_layer("img/hill1.png", depth=0.15, x_position=-6, y_position=-0.3, repeat=True, repeat_spacing=(6, 10))
-    parallax.add_layer("img/hill2.png", depth=0.14, x_position=20, y_position=-0.3, repeat=True, repeat_spacing=(5, 10))
-    parallax.add_layer("img/hill3.png", depth=0.19, x_position=-19, y_position=-0.3, repeat=True, repeat_spacing=(4, 8))
-    parallax.add_layer("img/hill4.png", depth=0.23, x_position=18, y_position=-0.3, repeat=True, repeat_spacing=(6, 8))
+    parallax.add_layer("img/hill1.png", depth=0.15, x_position=-4, y_position=-0.16, repeat=True, repeat_spacing=(6, 10))
+    parallax.add_layer("img/hill2.png", depth=0.14, x_position=15, y_position=-0.16, repeat=True, repeat_spacing=(5, 10))
+    parallax.add_layer("img/hill3.png", depth=0.19, x_position=-15, y_position=-0.16, repeat=True, repeat_spacing=(4, 8))
+    parallax.add_layer("img/hill4.png", depth=0.23, x_position=8, y_position=-0.16, repeat=True, repeat_spacing=(6, 8))
+    parallax.add_layer("img/hill1.png", depth=0.15, x_position=-6, y_position=-0.16, repeat=True, repeat_spacing=(6, 10))
+    parallax.add_layer("img/hill2.png", depth=0.14, x_position=20, y_position=-0.16, repeat=True, repeat_spacing=(5, 10))
+    parallax.add_layer("img/hill3.png", depth=0.19, x_position=-19, y_position=-0.16, repeat=True, repeat_spacing=(5, 6))
+    parallax.add_layer("img/hill4.png", depth=0.23, x_position=14, y_position=-0.16, repeat=True, repeat_spacing=(6, 8))
+
+    # parallax.add_layer("img/hill4.png", depth=0.15, x_position=-4, y_position=-0.5, repeat=True, repeat_spacing=(-4, -2))
 
     parallax.add_layer("img/tree3.png", depth=0.7, x_position=0, y_position=0, repeat=True, repeat_spacing=(4, 10))
-    parallax.add_layer("img/tree3.png", depth=0.7, x_position=3, y_position=0, repeat=True, repeat_spacing=(4, 10))
+    parallax.add_layer("img/tree3.png", depth=0.7, x_position=3, y_position=0, repeat=True, repeat_spacing=(4, 10), scale=1.1)
 
-    parallax.add_layer("img/tree4.png", depth=0.6, x_position=-2, y_position=0, repeat=True, repeat_spacing=(4, 10))
+    parallax.add_layer("img/tree4.png", depth=0.6, x_position=-2, y_position=0, repeat=True, repeat_spacing=(4, 10), scale=0.9)
     parallax.add_layer("img/tree4.png", depth=0.5, x_position=-6, y_position=0, repeat=True, repeat_spacing=(4, 10))
 
+    parallax.add_layer("img/bush.png", depth=0.8, x_position=-2, y_position=0.35, repeat=True, repeat_spacing=(4, 10), scale=0.25)
+    parallax.add_layer("img/bush2.png", depth=0.83, x_position=-5, y_position=0.35, repeat=True, repeat_spacing=(4, 10), scale=0.15)
+    parallax.add_layer("img/bush3.png", depth=0.84, x_position=-7, y_position=0.34, repeat=True, repeat_spacing=(4, 10), scale=0.2)
+    parallax.add_layer("img/bush4.png", depth=0.87, x_position=-9, y_position=0.33, repeat=True, repeat_spacing=(4, 10), scale=0.1)
+
+
+    parallax.add_layer("img/bush.png", depth=0.92, x_position=-2, y_position=0.2, repeat=True, repeat_spacing=(4, 6), scale=0.4)
+    parallax.add_layer("img/bush2.png", depth=0.93, x_position=-5, y_position=0.15, repeat=True, repeat_spacing=(4, 7), scale=0.45)
+    parallax.add_layer("img/bush3.png", depth=0.97, x_position=-7, y_position=0.1, repeat=True, repeat_spacing=(3, 8), scale=0.2)
+    parallax.add_layer("img/bush4.png", depth=0.99, x_position=-9, y_position=0.1, repeat=True, repeat_spacing=(2, 9), scale=0.3)
 
     # Pour les arbres : https://yellowimages.com/stock/low-poly-tree-png-yi3601918?ca=1_10
 
@@ -152,8 +161,7 @@ def main():
         quadruped.update()
         physics_world.step(TIME_STEP)
 
-        # Mettre à jour l'herbe
-        grass_field.update(quadruped)
+
 
         # ===== MISE À JOUR CAMÉRA =====
         # En mode suivi automatique, la caméra suit le corps du quadrupède
@@ -164,14 +172,16 @@ def main():
         # === AFFICHAGE ===
         display.clear()
 
-        # Dessiner les arrière-plans parallaxe EN PREMIER (du plus lointain au plus proche)
-        parallax.draw(display)
+        # 1. Dessiner les arrière-plans parallaxe (depth < 0.9)
+        parallax.draw_background(display)
 
+        # 2. Dessiner le sol
         display.draw_ground(physics_world.ground)
 
-        # Dessiner l'herbe AVANT le quadrupède (pour qu'elle soit derrière)
-        grass_field.draw(display)
+        # 3. Dessiner les premier plans parallaxe (depth >= 0.9) - DEVANT le sol
+        parallax.draw_foreground(display)
 
+        # 4. Dessiner le quadrupède
         # Utiliser le système d'overlay pour dessiner le quadrupède
         # Il gère automatiquement les 3 modes : IMAGE, TEXTURE, SKELETON
         overlay.draw_quadruped(quadruped)

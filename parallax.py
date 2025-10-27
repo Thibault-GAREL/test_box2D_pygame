@@ -9,7 +9,7 @@ import os
 class ParallaxLayer:
     """Représente une couche d'arrière-plan avec effet parallaxe"""
 
-    def __init__(self, image_path, depth, x_position=0, y_position=0, repeat=True, repeat_spacing=None):
+    def __init__(self, image_path, depth, x_position=0, y_position=0, repeat=True, repeat_spacing=None, scale=1.0):
         """
         image_path: chemin vers l'image
         depth: distance de la couche (0.0 = très loin, 1.0 = même plan que le jeu)
@@ -19,21 +19,33 @@ class ParallaxLayer:
         repeat: si True, l'image se répète horizontalement avec espacement
         repeat_spacing: espacement entre répétitions (en mètres). Si None, utilise la largeur de l'image
                        Peut être un tuple (min, max) pour un espacement aléatoire
+        scale: échelle de l'image (0.5=2x plus petit, 1.0=taille normale, 2.0=2x plus grand)
         """
         self.depth = depth
         self.x_position = x_position
         self.y_position = y_position
         self.repeat = repeat
         self.repeat_spacing = repeat_spacing
+        self.scale = scale
         self.image = None
         self.image_loaded = False
 
         # Charger l'image
         if os.path.exists(image_path):
             try:
-                self.image = pygame.image.load(image_path).convert_alpha()
+                original_image = pygame.image.load(image_path).convert_alpha()
+
+                # Appliquer le scale si différent de 1.0
+                if scale != 1.0:
+                    new_width = int(original_image.get_width() * scale)
+                    new_height = int(original_image.get_height() * scale)
+                    self.image = pygame.transform.scale(original_image, (new_width, new_height))
+                else:
+                    self.image = original_image
+
                 self.image_loaded = True
-                print(f"✅ Parallaxe: {image_path} chargée (depth={depth}, x={x_position}, y={y_position})")
+                print(
+                    f"✅ Parallaxe: {image_path} chargée (depth={depth}, x={x_position}, y={y_position}, scale={scale})")
             except Exception as e:
                 print(f"❌ Erreur parallaxe: {e}")
         else:
@@ -124,7 +136,7 @@ class ParallaxManager:
     def __init__(self):
         self.layers = []
 
-    def add_layer(self, image_path, depth, x_position=0, y_position=0, repeat=True, repeat_spacing=None):
+    def add_layer(self, image_path, depth, x_position=0, y_position=0, repeat=True, repeat_spacing=None, scale=1.0):
         """
         Ajoute une couche d'arrière-plan
 
@@ -138,31 +150,44 @@ class ParallaxManager:
                          None = collé (utilise la largeur de l'image)
                          Nombre = espacement fixe en mètres (ex: 5 = 5 mètres entre chaque)
                          Tuple = espacement aléatoire (min, max) en mètres (ex: (3, 8))
+        - scale: échelle de l'image (0.5=2x plus petit, 1.0=normal, 2.0=2x plus grand)
 
         Exemples d'utilisation:
         # Ciel qui se répète collé
         add_layer("sky.png", depth=0.0, y_position=5, repeat=True)
 
-        # Arbres espacés aléatoirement de 5 à 10 mètres, commence à x=-20
-        add_layer("tree.png", depth=0.6, x_position=-20, y_position=1, repeat=True, repeat_spacing=(5, 10))
+        # Arbres espacés aléatoirement, 1.5x plus grands
+        add_layer("tree.png", depth=0.6, x_position=-20, y_position=1, repeat=True, repeat_spacing=(5, 10), scale=1.5)
 
-        # Rochers espacés de 8 mètres exactement
-        add_layer("rock.png", depth=0.7, x_position=0, y_position=0.5, repeat=True, repeat_spacing=8)
+        # Rochers espacés, plus petits
+        add_layer("rock.png", depth=0.7, x_position=0, y_position=0.5, repeat=True, repeat_spacing=8, scale=0.7)
 
-        # Montagne unique à gauche
-        add_layer("mountain.png", depth=0.2, x_position=-15, y_position=3, repeat=False)
+        # Montagne unique à gauche, plus grande
+        add_layer("mountain.png", depth=0.2, x_position=-15, y_position=3, repeat=False, scale=2.0)
         """
-        layer = ParallaxLayer(image_path, depth, x_position, y_position, repeat, repeat_spacing)
+        layer = ParallaxLayer(image_path, depth, x_position, y_position, repeat, repeat_spacing, scale)
         self.layers.append(layer)
         return layer
 
-    def draw(self, display):
-        """Dessine toutes les couches dans l'ordre (du plus lointain au plus proche)"""
+    def draw_background(self, display):
+        """Dessine uniquement les couches d'arrière-plan (avant le sol)"""
         # Trier par depth croissant (les plus lointains d'abord)
         sorted_layers = sorted(self.layers, key=lambda l: l.depth)
 
         for layer in sorted_layers:
-            layer.draw(display)
+            # Dessiner seulement si depth < 0.9 (arrière-plan)
+            if layer.depth < 0.9:
+                layer.draw(display)
+
+    def draw_foreground(self, display):
+        """Dessine uniquement les couches de premier plan (après le sol)"""
+        # Trier par depth croissant
+        sorted_layers = sorted(self.layers, key=lambda l: l.depth)
+
+        for layer in sorted_layers:
+            # Dessiner seulement si depth >= 0.9 (premier plan)
+            if layer.depth >= 0.9:
+                layer.draw(display)
 
     def clear(self):
         """Supprime toutes les couches"""
