@@ -9,19 +9,22 @@ import os
 class ParallaxLayer:
     """Représente une couche d'arrière-plan avec effet parallaxe"""
 
-    def __init__(self, image_path, depth, x_position=0, y_position=0, repeat=True):
+    def __init__(self, image_path, depth, x_position=0, y_position=0, repeat=True, repeat_spacing=None):
         """
         image_path: chemin vers l'image
         depth: distance de la couche (0.0 = très loin, 1.0 = même plan que le jeu)
                 Plus le depth est faible, plus la couche bouge lentement
         x_position: position horizontale en mètres (0 = centre)
         y_position: position verticale en mètres (0 = sol)
-        repeat: si True, l'image se répète horizontalement
+        repeat: si True, l'image se répète horizontalement avec espacement
+        repeat_spacing: espacement entre répétitions (en mètres). Si None, utilise la largeur de l'image
+                       Peut être un tuple (min, max) pour un espacement aléatoire
         """
         self.depth = depth
         self.x_position = x_position
         self.y_position = y_position
         self.repeat = repeat
+        self.repeat_spacing = repeat_spacing
         self.image = None
         self.image_loaded = False
 
@@ -61,14 +64,55 @@ class ParallaxLayer:
         img_height = self.image.get_height()
 
         if self.repeat:
-            # Calculer la position de départ pour le tiling
-            start_x = final_x - (final_x % img_width) - img_width
+            import random
 
-            # Dessiner plusieurs copies de l'image pour couvrir l'écran
+            # Déterminer l'espacement
+            if self.repeat_spacing is None:
+                # Espacement par défaut = largeur de l'image
+                spacing_px = img_width
+            elif isinstance(self.repeat_spacing, tuple):
+                # Espacement aléatoire entre min et max (en mètres)
+                random.seed(42)  # Seed fixe pour cohérence
+                spacing_px = img_width  # Placeholder, sera calculé pour chaque instance
+            else:
+                # Espacement fixe (en mètres)
+                spacing_px = self.repeat_spacing * ppm
+
+            # Calculer la position de départ
+            # Utiliser x_position comme point de départ de la répétition
+            start_x = final_x
+
+            # Dessiner vers la gauche
             x = start_x
-            while x < display.width:
+            instance = 0
+            while x > -img_width:
+                screen.blit(self.image, (x, final_y - img_height))
+
+                # Calculer le prochain espacement (aléatoire si tuple)
+                if isinstance(self.repeat_spacing, tuple):
+                    random.seed(42 + instance)  # Seed basé sur l'instance pour cohérence
+                    spacing = random.uniform(self.repeat_spacing[0], self.repeat_spacing[1]) * ppm
+                else:
+                    spacing = spacing_px
+
+                x -= img_width + spacing
+                instance -= 1
+
+            # Dessiner vers la droite
+            x = start_x + img_width
+            instance = 1
+            while x < display.width + img_width:
+                # Calculer l'espacement (aléatoire si tuple)
+                if isinstance(self.repeat_spacing, tuple):
+                    random.seed(42 + instance)
+                    spacing = random.uniform(self.repeat_spacing[0], self.repeat_spacing[1]) * ppm
+                else:
+                    spacing = spacing_px
+
+                x += spacing
                 screen.blit(self.image, (x, final_y - img_height))
                 x += img_width
+                instance += 1
         else:
             # Image unique à la position spécifiée (avec parallaxe)
             screen.blit(self.image, (final_x, final_y - img_height))
@@ -80,31 +124,35 @@ class ParallaxManager:
     def __init__(self):
         self.layers = []
 
-    def add_layer(self, image_path, depth, x_position=0, y_position=0, repeat=True):
+    def add_layer(self, image_path, depth, x_position=0, y_position=0, repeat=True, repeat_spacing=None):
         """
         Ajoute une couche d'arrière-plan
 
         Paramètres:
         - image_path: chemin de l'image (ex: "mountains.png")
         - depth: distance 0.0-1.0 (0.0=lointain, 1.0=proche)
-        - x_position: position horizontale en mètres (0=centre du monde)
+        - x_position: position horizontale en mètres (0=centre du monde, utilisé comme point de départ si repeat=True)
         - y_position: position verticale en mètres (0=sol)
         - repeat: True pour répéter l'image horizontalement
+        - repeat_spacing: espacement entre répétitions (en mètres)
+                         None = collé (utilise la largeur de l'image)
+                         Nombre = espacement fixe en mètres (ex: 5 = 5 mètres entre chaque)
+                         Tuple = espacement aléatoire (min, max) en mètres (ex: (3, 8))
 
         Exemples d'utilisation:
-        # Ciel qui se répète tout le long
+        # Ciel qui se répète collé
         add_layer("sky.png", depth=0.0, y_position=5, repeat=True)
 
-        # Montagne unique positionnée à droite
-        add_layer("mountain.png", depth=0.2, x_position=10, y_position=3, repeat=False)
+        # Arbres espacés aléatoirement de 5 à 10 mètres, commence à x=-20
+        add_layer("tree.png", depth=0.6, x_position=-20, y_position=1, repeat=True, repeat_spacing=(5, 10))
 
-        # Arbre à gauche qui suit un peu la caméra
-        add_layer("tree.png", depth=0.7, x_position=-5, y_position=1, repeat=False)
+        # Rochers espacés de 8 mètres exactement
+        add_layer("rock.png", depth=0.7, x_position=0, y_position=0.5, repeat=True, repeat_spacing=8)
 
-        # Sol/herbe qui se répète
-        add_layer("ground.png", depth=0.9, y_position=0, repeat=True)
+        # Montagne unique à gauche
+        add_layer("mountain.png", depth=0.2, x_position=-15, y_position=3, repeat=False)
         """
-        layer = ParallaxLayer(image_path, depth, x_position, y_position, repeat)
+        layer = ParallaxLayer(image_path, depth, x_position, y_position, repeat, repeat_spacing)
         self.layers.append(layer)
         return layer
 

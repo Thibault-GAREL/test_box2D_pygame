@@ -10,7 +10,7 @@ import os
 class TextureMapper:
     """Gère le mapping d'une image de chat sur le squelette"""
 
-    def __init__(self, image_path="cat_texture.png"):
+    def __init__(self, image_path="img/cat_texture.png"):
         """Initialise le mapper avec l'image du chat"""
         self.image = None
         self.image_loaded = False
@@ -111,7 +111,7 @@ class TextureMapper:
 class VisualOverlay:
     """Gestionnaire d'overlay visuel pour le quadrupède - VERSION AMÉLIORÉE"""
 
-    def __init__(self, display, cat_image_path="cat_texture.png"):
+    def __init__(self, display, cat_image_path="img/cat_texture.png"):
         self.display = display
         self.render_mode = 2  # 0 = IMAGE, 1 = TEXTURE, 2 = SKELETON
 

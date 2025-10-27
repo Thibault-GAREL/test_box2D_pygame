@@ -28,22 +28,29 @@ def main():
     parallax = ParallaxManager()
 
     # Ajouter des couches d'arrière-plan (du plus lointain au plus proche)
+    # Exemples - remplacez par vos propres images !
 
-    # Couches qui se répètent (pour les paysages):
-    # parallax.add_layer("img/sky.png", depth=0.1, y_position=0, repeat=True)
-    parallax.add_layer("img/mountain2.png", depth=0.2, y_position=0, repeat=False)
-    parallax.add_layer("img/hills.png", depth=0.5, y_position=0, repeat=False)
+    # Couches qui se répètent collées (pour les paysages):
+    # parallax.add_layer("sky.png", depth=0.0, y_position=5, repeat=True)
+    # parallax.add_layer("mountains.png", depth=0.2, y_position=3, repeat=True)
+
+    # Éléments qui se répètent avec espacement ALÉATOIRE:
+    parallax.add_layer("img/mountain2.png", depth=0.1, x_position=0, y_position=0, repeat=True, repeat_spacing=(9, 12))
+    parallax.add_layer("img/rock.png", depth=0.7, x_position=0, y_position=0.5, repeat=True, repeat_spacing=(8, 15))
+    # parallax.add_layer("cloud.png", depth=0.1, x_position=0, y_position=8, repeat=True, repeat_spacing=(10, 20))
+
+    # Éléments qui se répètent avec espacement FIXE:
+    # parallax.add_layer("bush.png", depth=0.8, x_position=0, y_position=0.3, repeat=True, repeat_spacing=6)
 
     # Éléments uniques positionnés (repeat=False):
-    # parallax.add_layer("tree_big.png", depth=0.6, x_position=-8, y_position=1, repeat=False)  # Arbre à gauche
-    # parallax.add_layer("rock.png", depth=0.7, x_position=12, y_position=0.5, repeat=False)  # Rocher à droite
-    # parallax.add_layer("cloud.png", depth=0.1, x_position=5, y_position=8, repeat=False)  # Nuage flottant
+    # parallax.add_layer("big_tree.png", depth=0.6, x_position=-8, y_position=1, repeat=False)
 
     print("💡 Pour ajouter des arrière-plans, décommentez les lignes add_layer() dans main.py")
     print("   - depth: 0.0=lointain, 1.0=proche")
-    print("   - x_position: position horizontale en mètres (0=centre)")
+    print("   - x_position: point de départ horizontal (0=centre)")
     print("   - y_position: position verticale en mètres (0=sol)")
-    print("   - repeat: True=répète horizontalement, False=image unique")
+    print("   - repeat: True=répète, False=image unique")
+    print("   - repeat_spacing: None=collé, nombre=fixe, (min,max)=aléatoire")
 
     # Paramètres de simulation
     TARGET_FPS = 60
