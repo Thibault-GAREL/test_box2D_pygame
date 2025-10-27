@@ -18,7 +18,7 @@ class PhysicsWorld:
         """Crée le sol"""
         self.ground = self.world.CreateStaticBody(
             position=(0, 0),
-            shapes=b2PolygonShape(box=(20, 0.5)) # rect de largeur 40 (en gros on part du centre et on fait 20 de chaque côté)
+            shapes=b2PolygonShape(box=(80, 0.5)) # rect de largeur 40 (en gros on part du centre et on fait 20 de chaque côté)
         )
         self.ground.fixtures[0].friction = 0.8
 
@@ -48,7 +48,7 @@ class Muscle:
     """Représente un muscle (joint moteur entre deux os)"""
 
     def __init__(self, world, body_a, body_b, anchor_a, anchor_b,
-                 min_angle, max_angle, max_torque=500, max_speed=3.0):
+                 min_angle, max_angle, max_torque=1000, max_speed=3.0):
 
         joint_def = b2RevoluteJointDef(
             bodyA=body_a,
@@ -104,85 +104,116 @@ class Quadruped:
 
         # Créer les os
         width_bone = 0.05
-        body_height = 1.3
-        density_bone = 3
-        thigh_height = 0.5
-        shin_height = 0.4
+        body_height = 1
+        body_height_tail_head = 1.4
+        density_bone = 0.5
+        thigh_height = 0.3
+        shin_height_f = 0.2
+        shin_height_b = 0.3
         foot_height = 0.2
-        neck_height = 0.4
+        ankle_height_f = 0.2
+        ankle_height_b = 0.15
+        neck_height = 0.3
         tail_height = 0.4
         marge = 0.05
-        self.body = Bone(world, x, y, body_height, width_bone, density=density_bone+2)
-        self.back_thigh = Bone(world, x - 0.8, y - 0.5, width_bone, thigh_height, density=density_bone) # cuisse
-        self.back_shin = Bone(world, x - 0.8, y - 1.3, width_bone, shin_height, density=density_bone) # tibia
-        self.back_foot = Bone(world, x - 0.7, y - 1.5, width_bone, foot_height, density=density_bone)
-        self.front_thigh = Bone(world, x + 0.8, y - 0.5, width_bone, thigh_height, density=density_bone)
-        self.front_shin = Bone(world, x + 0.8, y - 1.3, width_bone, shin_height, density=density_bone)
-        self.front_foot = Bone(world, x + 0.7, y - 1.5, width_bone, foot_height, density=density_bone)
-        self.neck = Bone(world, x + 0.9, y + 0.1, width_bone, neck_height, density=density_bone+8)
-        self.tail_bottom = Bone(world, x - 0.9, y + 0.1, width_bone, tail_height, density=density_bone)
-        self.tail_mid = Bone(world, x - 1, y + 0.3, width_bone, tail_height/2, density=density_bone)
-        self.tail_high = Bone(world, x - 1.1, y + 0.4, width_bone, tail_height/2, density=density_bone)
+        self.body = Bone(world, x, y, body_height_tail_head, width_bone, density=density_bone)
 
-        self.bones = [self.body, self.back_thigh, self.back_shin, self.back_foot, self.front_thigh, self.front_shin, self.front_foot, self.neck, self.tail_bottom, self.tail_mid, self.tail_high]
+        self.front_thigh = Bone(world, x + 0.8, y - 0.5, width_bone, thigh_height, density=density_bone)
+        self.front_shin = Bone(world, x + 0.8, y - 1.3, width_bone, shin_height_f, density=density_bone)
+        self.front_ankle = Bone(world, x + 0.8, y - 1.4, width_bone, ankle_height_f, density=density_bone)
+        self.front_foot = Bone(world, x + 0.7, y - 1.5, width_bone, foot_height, density=density_bone)
+
+        self.back_thigh = Bone(world, x - 0.8, y - 0.5, width_bone, thigh_height, density=density_bone)  # cuisse
+        self.back_shin = Bone(world, x - 0.8, y - 1.3, width_bone, shin_height_b, density=density_bone)  # tibia
+        self.back_ankle = Bone(world, x - 0.8, y - 1.4, width_bone, ankle_height_b, density=density_bone)
+        self.back_foot = Bone(world, x - 0.7, y - 1.5, width_bone, foot_height, density=density_bone)
+
+        self.neck = Bone(world, x + 0.9, y + 0.1, width_bone, neck_height, density=density_bone)
+        self.head = Bone(world, x + 0.99, y + 0.1, width_bone, neck_height, density=density_bone)
+
+        self.tail_bottom = Bone(world, x - 0.9, y + 0.1, width_bone, tail_height, density=density_bone-0.4)
+        self.tail_mid = Bone(world, x - 1, y + 0.3, width_bone, tail_height/2, density=density_bone-0.4)
+        self.tail_high = Bone(world, x - 1.1, y + 0.4, width_bone, tail_height/2, density=density_bone-0.4)
+
+        self.bones = [self.body, self.front_thigh, self.front_shin, self.front_ankle, self.front_foot, self.back_thigh, self.back_shin, self.back_ankle, self.back_foot, self.neck, self.head, self.tail_bottom, self.tail_mid, self.tail_high]
 
         self.muscle1 = Muscle(
             world, self.body.body, self.front_thigh.body,
             (body_height / 2, -width_bone), (0, thigh_height / 2 + marge),
-            -math.pi * 0.45, math.pi * 0.1, max_torque=600
+            -math.pi * 0.45, math.pi * 0.1, max_torque=4000
         )
 
         self.muscle2 = Muscle(
             world, self.front_thigh.body, self.front_shin.body,
-            (0, -thigh_height / 2 + marge), (0, shin_height / 2 + marge),
-            0, math.pi * 0.8, max_torque=400
+            (0, -thigh_height / 2 + marge), (0, shin_height_f / 2 + marge),
+            0, math.pi * 0.8, max_torque=5000
         )
 
         self.muscle3 = Muscle(
-            world, self.front_shin.body, self.front_foot.body,
-            (width_bone, -shin_height / 2), (width_bone, foot_height / 2 + marge),
-            math.pi * 0.2, math.pi * 0.8, max_torque=300
+            world, self.front_shin.body, self.front_ankle.body,
+            (width_bone, -(shin_height_f / 2 + marge)), (width_bone, ankle_height_f/2 + marge),
+            0, math.pi * 0.4, max_torque=5000
         )
 
         self.muscle4 = Muscle(
-            world, self.body.body, self.back_thigh.body,
-            (-body_height/2, -width_bone), (0, thigh_height/2 + marge),
-            0, math.pi * 0.4, max_torque=600
+            world, self.front_ankle.body, self.front_foot.body,
+            (width_bone, -(ankle_height_f / 2 + marge)), (width_bone, marge),
+            math.pi * 0.3, math.pi * 0.6, max_torque=2000
         )
 
+
+
         self.muscle5 = Muscle(
-            world, self.back_thigh.body, self.back_shin.body,
-            (0, -thigh_height/2 + marge), (0, shin_height/2 + marge),
-            -math.pi * 0.7, 0, max_torque=400
+            world, self.body.body, self.back_thigh.body,
+            (-body_height/2, -width_bone), (0, thigh_height/2 + marge),
+            -math.pi * 0.3, math.pi * 0.35, max_torque=4000
         )
 
         self.muscle6 = Muscle(
-            world, self.back_shin.body, self.back_foot.body,
-            (width_bone, -shin_height / 2), (width_bone, foot_height / 2 + marge),
-            math.pi * 0.2, math.pi * 0.8, max_torque=300
+            world, self.back_thigh.body, self.back_shin.body,
+            (0, -thigh_height/2 + marge), (0, shin_height_b/2 + marge),
+            -math.pi * 0.7, 0, max_torque=5000
         )
 
-
-
         self.muscle7 = Muscle(
-            world, self.body.body, self.neck.body,
-            (body_height/2 + marge, width_bone), (0, neck_height / 2),
-            math.pi * 0.7, math.pi * 0.7, max_torque=40
+            world, self.back_shin.body, self.back_ankle.body,
+            (0, -shin_height_b / 2 + marge), (0, ankle_height_b / 2 + marge),
+            -math.pi * 0.7, 0, max_torque=5000
         )
 
         self.muscle8 = Muscle(
+            world, self.back_ankle.body, self.back_foot.body,
+            (width_bone, -(ankle_height_b / 2 + marge)), (width_bone, marge),
+            math.pi * 0.3, math.pi * 0.6, max_torque=2000
+        )
+
+
+
+        self.muscle9 = Muscle(
+            world, self.body.body, self.neck.body,
+            (body_height_tail_head/2 + marge, width_bone), (0, neck_height / 2),
+            math.pi * 0.75, math.pi * 0.75, max_torque=40
+        )
+
+        self.muscle10 = Muscle(
+            world, self.neck.body, self.head.body,
+            (width_bone, -(neck_height / 2 + marge)), (width_bone, -width_bone),
+            math.pi * 0.65, math.pi * 0.65, max_torque=40
+        )
+
+        self.muscle11 = Muscle(
             world, self.body.body, self.tail_bottom.body,
-            (-(body_height/2 + marge), width_bone), (0, tail_height/2),
+            (-(body_height_tail_head/2 + marge), width_bone), (0, tail_height/2),
             -math.pi * 0.6, -math.pi * 0.6, max_torque=40
         )
 
-        self.muscle9 = Muscle(
+        self.muscle12 = Muscle(
             world, self.tail_bottom.body, self.tail_mid.body,
             (0, -tail_height/2), (0, tail_height/4 + marge),
             -math.pi * 0.3, -math.pi * 0.3, max_torque=40
         )
 
-        self.muscle10 = Muscle(
+        self.muscle13 = Muscle(
             world, self.tail_mid.body, self.tail_high.body,
             (0, -(tail_height/4 + marge)), (0, tail_height/4 + marge),
             -math.pi * 0.4, -math.pi * 0.4, max_torque=40
@@ -190,7 +221,7 @@ class Quadruped:
 
 
 
-        self.muscles = [self.muscle1, self.muscle2, self.muscle3, self.muscle4, self.muscle5, self.muscle6, self.muscle7, self.muscle8, self.muscle9, self.muscle10]
+        self.muscles = [self.muscle1, self.muscle2, self.muscle3, self.muscle4, self.muscle5, self.muscle6, self.muscle7, self.muscle8, self.muscle9, self.muscle10, self.muscle11, self.muscle12, self.muscle13]
 
     def control_muscles(self, muscle_index, action):
         """

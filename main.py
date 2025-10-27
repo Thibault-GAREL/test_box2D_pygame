@@ -18,8 +18,8 @@ def main():
     quadruped = Quadruped(physics_world, x=6, y=3)
 
     # Initialiser le système d'overlay visuel avec l'image du chat
-    # IMPORTANT : cat_texture.png doit être dans le même dossier !
-    overlay = VisualOverlay(display, cat_image_path="cat_texture.png")
+    # IMPORTANT : fox_texture.png doit être dans le même dossier !
+    overlay = VisualOverlay(display, fox_image_path="img/fox_texture.png")
 
     # Initialiser le système de parallaxe
     parallax = ParallaxManager()
@@ -35,9 +35,9 @@ def main():
     parallax.add_layer("img/cloud.png", depth=0.07, x_position=-1, y_position=6, repeat=True, repeat_spacing=(9, 12), scale=0.4)
     parallax.add_layer("img/cloud2.png", depth=0.05, x_position=5, y_position=5, repeat=True, repeat_spacing=(5, 7), scale=0.3)
 
-    parallax.add_layer("img/mountain2.png", depth=0.1, x_position=0, y_position=0, repeat=True, repeat_spacing=(9, 12))
+    parallax.add_layer("img/mountain2.png", depth=0.1, x_position=0, y_position=0, repeat=True, repeat_spacing=(9, 12), scale=1.3)
 
-    parallax.add_layer("img/hill1.png", depth=0.15, x_position=-4, y_position=-0.16, repeat=True, repeat_spacing=(6, 10))
+    parallax.add_layer("img/hill1.png", depth=0.15, x_position=-4, y_position=-0.16, repeat=True, repeat_spacing=(6, 10), scale= 1.4)
     parallax.add_layer("img/hill2.png", depth=0.14, x_position=15, y_position=-0.16, repeat=True, repeat_spacing=(5, 10))
     parallax.add_layer("img/hill3.png", depth=0.19, x_position=-15, y_position=-0.16, repeat=True, repeat_spacing=(4, 8))
     parallax.add_layer("img/hill4.png", depth=0.23, x_position=8, y_position=-0.16, repeat=True, repeat_spacing=(6, 8))
@@ -117,42 +117,49 @@ def main():
                 display.move_camera(0, -display.camera_speed)
 
         # Relâcher tous les muscles
-        for i in range(6):
+        for i in range(8):
             quadruped.control_muscles(i, 'relax')
 
-        # Muscle 1 (hanche arrière)
-        if keys[pygame.K_r]:
+
+        if keys[pygame.K_t]:
             quadruped.control_muscles(0, 'contract')
-        elif keys[pygame.K_f]:
+        elif keys[pygame.K_g]:
             quadruped.control_muscles(0, 'extend')
 
-        # Muscle 2 (genou arrière)
-        if keys[pygame.K_t]:
+        if keys[pygame.K_y]:
             quadruped.control_muscles(1, 'contract')
-        elif keys[pygame.K_g]:
+        elif keys[pygame.K_h]:
             quadruped.control_muscles(1, 'extend')
 
-        # Muscle 3 (épaule avant)
-        if keys[pygame.K_y]:
+        if keys[pygame.K_u]:
             quadruped.control_muscles(2, 'contract')
-        elif keys[pygame.K_h]:
+        elif keys[pygame.K_j]:
             quadruped.control_muscles(2, 'extend')
 
-        # Muscle 4 (coude avant)
-        if keys[pygame.K_e]:
+        if keys[pygame.K_i]:
             quadruped.control_muscles(3, 'contract')
-        elif keys[pygame.K_d]:
+        elif keys[pygame.K_k]:
             quadruped.control_muscles(3, 'extend')
 
-        if keys[pygame.K_z]:
+        if keys[pygame.K_r]:
             quadruped.control_muscles(4, 'contract')
-        elif keys[pygame.K_s]:
+        elif keys[pygame.K_f]:
             quadruped.control_muscles(4, 'extend')
 
-        if keys[pygame.K_a]:
+        if keys[pygame.K_e]:
             quadruped.control_muscles(5, 'contract')
-        elif keys[pygame.K_q]:
+        elif keys[pygame.K_d]:
             quadruped.control_muscles(5, 'extend')
+
+        if keys[pygame.K_z]:
+            quadruped.control_muscles(6, 'contract')
+        elif keys[pygame.K_s]:
+            quadruped.control_muscles(6, 'extend')
+
+        if keys[pygame.K_a]:
+            quadruped.control_muscles(7, 'contract')
+        elif keys[pygame.K_q]:
+            quadruped.control_muscles(7, 'extend')
 
         if quadruped.is_upside_down():
             display.draw_text("RETOURNÉ!", (display.width // 2 - 50, 50), (255, 0, 0))

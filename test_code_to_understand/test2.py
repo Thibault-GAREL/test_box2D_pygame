@@ -21,7 +21,7 @@ world = b2World(gravity=(0, -10), doSleep=True)
 # Créer le sol
 ground_body = world.CreateStaticBody(
     position=(0, 1),
-    shapes=b2PolygonShape(box=(20, 0.5))
+    shapes=b2PolygonShape(box=(20, 2))
 )
 
 
