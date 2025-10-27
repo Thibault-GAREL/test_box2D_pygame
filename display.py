@@ -22,7 +22,8 @@ class Display:
         self.camera_x = 0.0  # Offset horizontal de la caméra (en mètres)
         self.camera_y = 0.0  # Offset vertical de la caméra (en mètres)
         self.camera_speed = 0.1  # Vitesse de déplacement de la caméra
-        self.follow_mode = False  # Mode suivi automatique du quadrupède
+        self.follow_mode = True  # Mode suivi automatique du quadrupède
+        self.follow_offset_y = 2  # Offset Y pour le suivi (négatif = quadrupède plus bas que le centre)
 
     def to_screen(self, pos):
         """Convertit les coordonnées Box2D en coordonnées Pygame avec offset caméra"""
@@ -38,8 +39,9 @@ class Display:
         """Fait suivre la caméra à une position cible (suivi fluide)"""
         if self.follow_mode:
             # Interpolation linéaire pour un mouvement fluide
+            # Utiliser follow_offset_y pour décentrer verticalement
             self.camera_x += (target_pos[0] - 6 - self.camera_x) * smoothness
-            self.camera_y += (target_pos[1] - 3.5 - self.camera_y) * smoothness
+            self.camera_y += (target_pos[1] - 3.5 + self.follow_offset_y - self.camera_y) * smoothness
 
     def toggle_follow_mode(self):
         """Active/désactive le mode suivi automatique"""
@@ -47,8 +49,19 @@ class Display:
         return self.follow_mode
 
     def clear(self, color=(30, 30, 40)):
-        """Efface l'écran"""
-        self.screen.fill(color)
+        """Efface l'écran avec un dégradé de ciel"""
+        # Créer un dégradé de ciel bleu
+        top_color = (135, 206, 235)  # Bleu ciel clair
+        bottom_color = (200, 230, 255)  # Bleu très clair / blanc
+
+        for y in range(self.height):
+            progress = y / self.height
+            color = (
+                int(top_color[0] + (bottom_color[0] - top_color[0]) * progress),
+                int(top_color[1] + (bottom_color[1] - top_color[1]) * progress),
+                int(top_color[2] + (bottom_color[2] - top_color[2]) * progress)
+            )
+            pygame.draw.line(self.screen, color, (0, y), (self.width, y))
 
     def draw_ground(self, ground_body):
         """Dessine le sol"""

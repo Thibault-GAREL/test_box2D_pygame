@@ -5,6 +5,11 @@ from physics import PhysicsWorld, Quadruped
 from display import Display
 # Import du système d'overlay AMÉLIORÉ
 from overlay import VisualOverlay
+# Import du système d'herbe
+from grass import GrassField
+# Import du système de parallaxe
+from parallax import ParallaxManager
+
 
 def main():
     # Initialiser les systèmes
@@ -15,6 +20,30 @@ def main():
     # Initialiser le système d'overlay visuel avec l'image du chat
     # IMPORTANT : cat_texture.png doit être dans le même dossier !
     overlay = VisualOverlay(display, cat_image_path="cat_texture.png")
+
+    # Initialiser le champ d'herbe
+    grass_field = GrassField(width=40, density=30)
+
+    # Initialiser le système de parallaxe
+    parallax = ParallaxManager()
+
+    # Ajouter des couches d'arrière-plan (du plus lointain au plus proche)
+
+    # Couches qui se répètent (pour les paysages):
+    # parallax.add_layer("img/sky.png", depth=0.1, y_position=0, repeat=True)
+    parallax.add_layer("img/mountain2.png", depth=0.2, y_position=0, repeat=False)
+    parallax.add_layer("img/hills.png", depth=0.5, y_position=0, repeat=False)
+
+    # Éléments uniques positionnés (repeat=False):
+    # parallax.add_layer("tree_big.png", depth=0.6, x_position=-8, y_position=1, repeat=False)  # Arbre à gauche
+    # parallax.add_layer("rock.png", depth=0.7, x_position=12, y_position=0.5, repeat=False)  # Rocher à droite
+    # parallax.add_layer("cloud.png", depth=0.1, x_position=5, y_position=8, repeat=False)  # Nuage flottant
+
+    print("💡 Pour ajouter des arrière-plans, décommentez les lignes add_layer() dans main.py")
+    print("   - depth: 0.0=lointain, 1.0=proche")
+    print("   - x_position: position horizontale en mètres (0=centre)")
+    print("   - y_position: position verticale en mètres (0=sol)")
+    print("   - repeat: True=répète horizontalement, False=image unique")
 
     # Paramètres de simulation
     TARGET_FPS = 60
@@ -97,6 +126,9 @@ def main():
         quadruped.update()
         physics_world.step(TIME_STEP)
 
+        # Mettre à jour l'herbe
+        grass_field.update(quadruped)
+
         # ===== MISE À JOUR CAMÉRA =====
         # En mode suivi automatique, la caméra suit le corps du quadrupède
         if display.follow_mode:
@@ -105,7 +137,14 @@ def main():
 
         # === AFFICHAGE ===
         display.clear()
+
+        # Dessiner les arrière-plans parallaxe EN PREMIER (du plus lointain au plus proche)
+        parallax.draw(display)
+
         display.draw_ground(physics_world.ground)
+
+        # Dessiner l'herbe AVANT le quadrupède (pour qu'elle soit derrière)
+        grass_field.draw(display)
 
         # Utiliser le système d'overlay pour dessiner le quadrupède
         # Il gère automatiquement les 3 modes : IMAGE, TEXTURE, SKELETON
