@@ -8,7 +8,7 @@
 ![Contributions](https://img.shields.io/badge/contributions-welcome-orange.svg)  
 
 ## 📝 Project Description 
-This project is a try to understand how to use box2D with pygame
+This project is a try to understand how to use box2D with pygame 🦊🦊🦊
 
 
 ---
@@ -29,6 +29,7 @@ Make a better display
 We need to reduce the angular speed and make a score for the power use
 Make a camera systeme with paralaxe images
 
+Add some commentary for each .py on the top for a better understanding of my code for AI (and me 🫠)
 
 ## 🗺️ Schema
 

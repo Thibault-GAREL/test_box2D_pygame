@@ -119,7 +119,7 @@ class Quadruped:
         self.front_thigh = Bone(world, x + 0.8, y - 0.5, width_bone, thigh_height, density=density_bone)
         self.front_shin = Bone(world, x + 0.8, y - 1.3, width_bone, shin_height, density=density_bone)
         self.front_foot = Bone(world, x + 0.7, y - 1.5, width_bone, foot_height, density=density_bone)
-        self.neck = Bone(world, x + 0.9, y + 0.1, width_bone, neck_height, density=density_bone+5)
+        self.neck = Bone(world, x + 0.9, y + 0.1, width_bone, neck_height, density=density_bone+8)
         self.tail_bottom = Bone(world, x - 0.9, y + 0.1, width_bone, tail_height, density=density_bone)
         self.tail_mid = Bone(world, x - 1, y + 0.3, width_bone, tail_height/2, density=density_bone)
         self.tail_high = Bone(world, x - 1.1, y + 0.4, width_bone, tail_height/2, density=density_bone)
@@ -179,7 +179,7 @@ class Quadruped:
         self.muscle9 = Muscle(
             world, self.tail_bottom.body, self.tail_mid.body,
             (0, -tail_height/2), (0, tail_height/4 + marge),
-            -math.pi * 0.5, -math.pi * 0.5, max_torque=40
+            -math.pi * 0.3, -math.pi * 0.3, max_torque=40
         )
 
         self.muscle10 = Muscle(

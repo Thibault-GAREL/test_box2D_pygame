@@ -52,7 +52,7 @@ def main():
     parallax.add_layer("img/tree3.png", depth=0.7, x_position=3, y_position=0, repeat=True, repeat_spacing=(4, 10), scale=1.1)
 
     parallax.add_layer("img/tree4.png", depth=0.6, x_position=-2, y_position=0, repeat=True, repeat_spacing=(4, 10), scale=0.9)
-    parallax.add_layer("img/tree4.png", depth=0.5, x_position=-6, y_position=0, repeat=True, repeat_spacing=(4, 10))
+    parallax.add_layer("img/tree5.png", depth=0.5, x_position=-6, y_position=0, repeat=True, repeat_spacing=(4, 10))
 
     parallax.add_layer("img/bush.png", depth=0.8, x_position=-2, y_position=0.35, repeat=True, repeat_spacing=(4, 10), scale=0.25)
     parallax.add_layer("img/bush2.png", depth=0.83, x_position=-5, y_position=0.35, repeat=True, repeat_spacing=(4, 10), scale=0.15)
