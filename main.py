@@ -36,11 +36,18 @@ def main():
 
     # Éléments qui se répètent avec espacement ALÉATOIRE:
     parallax.add_layer("img/mountain2.png", depth=0.1, x_position=0, y_position=0, repeat=True, repeat_spacing=(9, 12))
+
+    parallax.add_layer("img/hill1.png", depth=0.15, x_position=-4, y_position=-0.3, repeat=True, repeat_spacing=(6, 10))
+    parallax.add_layer("img/hill1.png", depth=0.14, x_position=4, y_position=-0.3, repeat=True, repeat_spacing=(6, 10))
+
     parallax.add_layer("img/tree3.png", depth=0.7, x_position=0, y_position=0, repeat=True, repeat_spacing=(4, 10))
     parallax.add_layer("img/tree3.png", depth=0.7, x_position=3, y_position=0, repeat=True, repeat_spacing=(4, 10))
+
     parallax.add_layer("img/tree4.png", depth=0.6, x_position=-2, y_position=0, repeat=True, repeat_spacing=(4, 10))
     parallax.add_layer("img/tree4.png", depth=0.5, x_position=-6, y_position=0, repeat=True, repeat_spacing=(4, 10))
-    # parallax.add_layer("cloud.png", depth=0.1, x_position=0, y_position=8, repeat=True, repeat_spacing=(10, 20))
+
+
+    # Pour les arbres : https://yellowimages.com/stock/low-poly-tree-png-yi3601918?ca=1_10
 
     # Éléments qui se répètent avec espacement FIXE:
     # parallax.add_layer("bush.png", depth=0.8, x_position=0, y_position=0.3, repeat=True, repeat_spacing=6)
