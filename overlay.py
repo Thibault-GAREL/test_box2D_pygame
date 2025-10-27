@@ -1,5 +1,5 @@
 # ============================================
-# overlay.py - Système d'overlay visuel AMÉLIORÉ avec image de chat
+# overlay.py - Système d'overlay avec PARTIES DÉCOUPÉES
 # ============================================
 
 import pygame
@@ -7,356 +7,376 @@ import math
 import os
 
 
-class TextureMapper:
-    """Gère le mapping d'une image de chat sur le squelette"""
+class BoneTexture:
+    """Charge et dessine une texture pour un os spécifique"""
 
-    def __init__(self, image_path="img/cat_texture.png"):
-        """Initialise le mapper avec l'image du chat"""
+    def __init__(self, image_path, scale=1.0):
+        """Charge l'image pour cet os
+
+        Args:
+            image_path: Chemin vers l'image
+            scale: Facteur d'échelle (1.0 = taille originale, 0.5 = moitié, etc.)
+        """
         self.image = None
-        self.image_loaded = False
+        self.loaded = False
+        self.scale = scale
+        self.initial_angle = None  # Stockera l'angle initial de l'os
 
-        # Essayer de charger l'image
         if os.path.exists(image_path):
             try:
-                self.image = pygame.image.load(image_path).convert_alpha()
-                self.image_loaded = True
-                print(f"✅ Image chargée : {image_path}")
-            except Exception as e:
-                print(f"❌ Erreur de chargement : {e}")
-                self.image_loaded = False
-        else:
-            print(f"⚠️  Image non trouvée : {image_path}")
-            print("📌 Place 'cat_texture.png' dans le dossier du projet")
-            self.image_loaded = False
+                original = pygame.image.load(image_path).convert_alpha()
 
-        # Définir les régions de l'image (coordonnées normalisées 0-1)
-        # Format: (x, y, width, height) en pourcentage de l'image
-        self.regions = {
-            'body': (0.35, 0.3, 0.35, 0.25),  # Corps central
-            'neck': (0.7, 0.25, 0.2, 0.25),  # Tête/cou
-            'front_thigh': (0.55, 0.5, 0.15, 0.2),  # Cuisse avant
-            'front_shin': (0.55, 0.65, 0.12, 0.2),  # Jambe avant
-            'front_foot': (0.55, 0.82, 0.1, 0.12),  # Patte avant
-            'back_thigh': (0.25, 0.5, 0.15, 0.2),  # Cuisse arrière
-            'back_shin': (0.25, 0.65, 0.12, 0.2),  # Jambe arrière
-            'back_foot': (0.25, 0.82, 0.1, 0.12),  # Patte arrière
-            'tail_bottom': (0.1, 0.25, 0.12, 0.25),  # Queue base
-            'tail_mid': (0.05, 0.2, 0.08, 0.15),  # Queue milieu
-            'tail_high': (0.02, 0.15, 0.06, 0.12),  # Queue bout
+                # Appliquer le scaling
+                if scale != 1.0:
+                    new_width = int(original.get_width() * scale)
+                    new_height = int(original.get_height() * scale)
+                    self.image = pygame.transform.scale(original, (new_width, new_height))
+                else:
+                    self.image = original
+
+                self.loaded = True
+                print(f"✅ Chargé : {os.path.basename(image_path)} (échelle: {scale}x)")
+            except Exception as e:
+                print(f"❌ Erreur : {image_path} - {e}")
+        else:
+            print(f"⚠️ Non trouvé : {image_path}")
+
+    def draw(self, screen, bone, display, offset=(0, 0), rotation_offset=0):
+        """Dessine la texture sur l'os avec rotation RELATIVE et offset
+
+        Args:
+            screen: Surface pygame
+            bone: Os du squelette
+            display: Objet Display
+            offset: Tuple (x, y) en pixels pour décaler l'image
+            rotation_offset: Angle en DEGRÉS à ajouter à la rotation (positif = horaire)
+        """
+        if not self.loaded or self.image is None:
+            return
+
+        # Récupérer la position et l'angle de l'os
+        bone_pos = bone.body.position
+        bone_angle = bone.body.angle
+
+        # Stocker l'angle initial au premier appel
+        if self.initial_angle is None:
+            self.initial_angle = bone_angle
+
+        # Calculer la rotation RELATIVE (angle actuel - angle initial)
+        relative_angle = bone_angle - self.initial_angle
+
+        # Ajouter le rotation_offset (converti en radians)
+        final_angle = relative_angle + math.radians(rotation_offset)
+
+        # Rotation de l'image selon l'angle RELATIF + offset de rotation
+        rotated_image = pygame.transform.rotate(
+            self.image,
+            -math.degrees(final_angle)  # Rotation relative + offset
+        )
+
+        # Position à l'écran
+        screen_pos = display.to_screen(bone_pos)
+
+        # Appliquer l'offset (rotation de l'offset selon l'angle FINAL)
+        offset_x, offset_y = offset
+        if offset_x != 0 or offset_y != 0:
+            # Rotation de l'offset selon l'angle final
+            cos_a = math.cos(-final_angle)
+            sin_a = math.sin(-final_angle)
+            rotated_offset_x = offset_x * cos_a - offset_y * sin_a
+            rotated_offset_y = offset_x * sin_a + offset_y * cos_a
+
+            screen_pos = (
+                screen_pos[0] + rotated_offset_x,
+                screen_pos[1] + rotated_offset_y
+            )
+
+        # Centrer l'image sur la position (avec offset)
+        rect = rotated_image.get_rect(center=screen_pos)
+
+        # Dessiner
+        screen.blit(rotated_image, rect.topleft)
+
+
+class TexturedOverlay:
+    """Système d'overlay utilisant des parties découpées"""
+
+    def __init__(self, parts_folder="fox_parts", global_scale=1.0):
+        """Initialise et charge toutes les textures
+
+        Args:
+            parts_folder: Dossier contenant les images
+            global_scale: Échelle globale pour toutes les images (0.3 = 30% de la taille)
+        """
+        self.parts_folder = parts_folder
+        self.textures = {}
+        self.global_scale = global_scale
+
+        # Facteurs d'échelle individuels par partie (multipliés par global_scale)
+        # Ajuste ces valeurs si certaines parties sont trop grandes/petites
+        self.part_scales = {
+            'body': 1.3,
+            'neck': 1.1,
+            'head': 1.0,
+            'front_thigh': 1.0,
+            'front_shin': 1.0,
+            'front_ankle': 1.0,
+            'front_foot': 1.0,
+            'back_thigh': 1.0,
+            'back_shin': 1.0,
+            'back_ankle': 1.0,
+            'back_foot': 1.0,
+            'tail_bottom': 1.0,
+            'tail_mid': 1.0,
+            'tail_high': 1.0,
         }
 
-    def get_image_region(self, region_name):
-        """Extrait une région de l'image"""
-        if not self.image_loaded or region_name not in self.regions:
-            return None
+        # Décalages (offsets) en pixels pour ajuster la position de chaque image
+        # Format: (offset_x, offset_y) où x+ = droite, y+ = bas
+        self.part_offsets = {
+            'body': (0, 25),
+            'neck': (-80, -30),
+            'head': (0, 0),
+            'front_thigh': (0, 0),
+            'front_shin': (0, 0),
+            'front_ankle': (0, 0),
+            'front_foot': (0, 0),
+            'back_thigh': (0, 0),
+            'back_shin': (0, 0),
+            'back_ankle': (0, 0),
+            'back_foot': (0, 0),
+            'tail_bottom': (0, 0),
+            'tail_mid': (0, 0),
+            'tail_high': (0, 0),
+        }
 
-        x, y, w, h = self.regions[region_name]
-        img_width, img_height = self.image.get_size()
+        # Rotation offsets en DEGRÉS pour ajuster l'angle de chaque image
+        # Valeur positive = rotation horaire, négative = anti-horaire
+        self.rotation_offsets = {
+            'body': 0,
+            'neck': 0,
+            'head': 0,
+            'front_thigh': 0,
+            'front_shin': 0,
+            'front_ankle': 0,
+            'front_foot': 0,
+            'back_thigh': 0,
+            'back_shin': 0,
+            'back_ankle': 0,
+            'back_foot': 0,
+            'tail_bottom': 0,
+            'tail_mid': 0,
+            'tail_high': 0,
+        }
 
-        # Convertir en pixels
-        rect = pygame.Rect(
-            int(x * img_width),
-            int(y * img_height),
-            int(w * img_width),
-            int(h * img_height)
-        )
+        # Définir l'ordre de dessin (arrière vers avant pour le Z-ordering)
+        # Tu as dit : dessiner body en dernier pour qu'il soit au premier plan
+        self.draw_order = [
+            # 'tail_high',  # Queue (fond)
+            # 'tail_mid',
+            # 'tail_bottom',
+            # 'back_foot',  # Patte arrière (fond)
+            # 'back_ankle',
+            # 'back_shin',
+            # 'back_thigh',
+            # 'front_foot',  # Patte avant
+            # 'front_ankle',
+            # 'front_shin',
+            # 'front_thigh',
+            'neck',  # Cou
+            # 'head',  # Tête
+            'body',  # Corps (premier plan)
+        ]
 
-        # Extraire la sous-image
-        try:
-            subsurface = self.image.subsurface(rect)
-            return subsurface.copy()
-        except:
-            return None
+        # Mapping nom -> fichier (note: anckle vs ankle dans les noms de fichiers)
+        self.file_mapping = {
+            'body': 'fox_texture_body.png',
+            'neck': 'fox_texture_neck.png',
+            'head': 'fox_texture_head.png',
+            'front_thigh': 'fox_texture_front_thigh.png',
+            'front_shin': 'fox_texture_front_shin.png',
+            'front_ankle': 'fox_texture_front_anckle.png',  # Note: anckle
+            'front_foot': 'fox_texture_front_foot.png',
+            'back_thigh': 'fox_texture_back_thigh.png',
+            'back_shin': 'fox_texture_back_shin.png',
+            'back_ankle': 'fox_texture_back_anckle.png',  # Note: anckle
+            'back_foot': 'fox_texture_back_foot.png',
+            'tail_bottom': 'fox_texture_tail_bottom.png',
+            'tail_mid': 'fox_texture_tail_mid.png',
+            'tail_high': 'fox_texture_tail_high.png',
+        }
 
-    def warp_texture_to_bone(self, surface, texture_region, bone_vertices):
-        """Applique une texture déformée sur un os"""
-        if texture_region is None:
-            return
+        # Charger toutes les textures
+        self.load_textures()
 
-        # Calculer la position et taille de l'os
-        if len(bone_vertices) < 4:
-            return
+    def load_textures(self):
+        """Charge toutes les textures des parties avec leur échelle"""
+        print(f"\n🦊 Chargement des textures depuis {self.parts_folder}/")
+        print(f"📏 Échelle globale: {self.global_scale}x")
 
-        # Calculer le centre et les dimensions
-        xs = [v[0] for v in bone_vertices]
-        ys = [v[1] for v in bone_vertices]
-        center_x = sum(xs) / len(xs)
-        center_y = sum(ys) / len(ys)
+        for part_name, filename in self.file_mapping.items():
+            filepath = os.path.join(self.parts_folder, filename)
+            # Calculer l'échelle finale = global_scale × part_scale
+            final_scale = self.global_scale * self.part_scales.get(part_name, 1.0)
+            self.textures[part_name] = BoneTexture(filepath, scale=final_scale)
 
-        # Calculer l'angle de rotation
-        dx = bone_vertices[1][0] - bone_vertices[0][0]
-        dy = bone_vertices[1][1] - bone_vertices[0][1]
-        angle = math.degrees(math.atan2(-dy, dx))
+        loaded_count = sum(1 for tex in self.textures.values() if tex.loaded)
+        print(f"✅ {loaded_count}/{len(self.textures)} textures chargées\n")
 
-        # Calculer la largeur et hauteur de l'os
-        width = math.sqrt(dx ** 2 + dy ** 2)
-        height = math.sqrt(
-            (bone_vertices[3][0] - bone_vertices[0][0]) ** 2 +
-            (bone_vertices[3][1] - bone_vertices[0][1]) ** 2
-        )
+    def draw_quadruped(self, display, quadruped):
+        """Dessine le quadrupède avec les textures dans le bon ordre"""
 
-        # Redimensionner la texture
-        if width > 1 and height > 1:
-            scaled = pygame.transform.scale(texture_region, (int(width), int(height)))
-            # Rotation
-            rotated = pygame.transform.rotate(scaled, angle)
+        # Mapping nom de partie -> os du quadrupède
+        bone_mapping = {
+            'body': quadruped.body,
+            'neck': quadruped.neck,
+            'head': quadruped.head,
+            'front_thigh': quadruped.front_thigh,
+            'front_shin': quadruped.front_shin,
+            'front_ankle': quadruped.front_ankle,
+            'front_foot': quadruped.front_foot,
+            'back_thigh': quadruped.back_thigh,
+            'back_shin': quadruped.back_shin,
+            'back_ankle': quadruped.back_ankle,
+            'back_foot': quadruped.back_foot,
+            'tail_bottom': quadruped.tail_bottom,
+            'tail_mid': quadruped.tail_mid,
+            'tail_high': quadruped.tail_high,
+        }
 
-            # Position finale
-            rect = rotated.get_rect(center=(center_x, center_y))
-
-            # Appliquer avec transparence
-            surface.blit(rotated, rect.topleft)
+        # Dessiner dans l'ordre (arrière vers avant)
+        for part_name in self.draw_order:
+            if part_name in self.textures and part_name in bone_mapping:
+                texture = self.textures[part_name]
+                bone = bone_mapping[part_name]
+                offset = self.part_offsets.get(part_name, (0, 0))
+                rotation_offset = self.rotation_offsets.get(part_name, 0)
+                texture.draw(display.screen, bone, display, offset=offset, rotation_offset=rotation_offset)
 
 
 class VisualOverlay:
-    """Gestionnaire d'overlay visuel pour le quadrupède - VERSION AMÉLIORÉE"""
+    """Gestionnaire d'overlay visuel - VERSION PARTIES DÉCOUPÉES"""
 
-    def __init__(self, display, cat_image_path="img/cat_texture.png"):
+    def __init__(self, display, parts_folder="fox_parts", global_scale=0.3):
+        """Initialise l'overlay
+
+        Args:
+            display: Objet Display
+            parts_folder: Dossier contenant les images
+            global_scale: Échelle globale (0.3 = 30% de la taille, ajuste selon tes besoins)
+        """
         self.display = display
-        self.render_mode = 2  # 0 = IMAGE, 1 = TEXTURE, 2 = SKELETON
+        self.render_mode = 0  # 0=TEXTURED, 1=SKELETON
 
-        # Initialiser le texture mapper
-        self.texture_mapper = TextureMapper(cat_image_path)
+        # Nouveau système avec parties découpées
+        self.textured_overlay = TexturedOverlay(parts_folder, global_scale=global_scale)
 
-        # Couleurs pour le mode TEXTURE
+        # Couleurs pour le mode skeleton
         self.colors = {
-            'body': (180, 140, 100),
-            'legs': (160, 120, 90),
-            'neck': (170, 130, 95),
-            'tail': (150, 110, 80),
+            'bone': (255, 255, 255),
+            'joint': (255, 200, 100),
             'muscle_relaxed': (255, 100, 100),
             'muscle_active': (255, 50, 50),
-            'joint': (255, 200, 100),
         }
 
-        # Surface pour les effets de glow
         self.glow_surface = pygame.Surface((display.width, display.height), pygame.SRCALPHA)
 
-        # Surface pour la texture (séparée)
-        self.texture_surface = pygame.Surface((display.width, display.height), pygame.SRCALPHA)
-
     def toggle_mode(self):
-        """Bascule entre les 3 modes : IMAGE -> TEXTURE -> SKELETON -> IMAGE"""
-        self.render_mode = (self.render_mode + 1) % 3
-        mode_names = ["IMAGE", "TEXTURE", "SKELETON"]
-        print(f"🔄 Mode changé : {mode_names[self.render_mode]}")
+        """Bascule entre TEXTURED et SKELETON"""
+        self.render_mode = (self.render_mode + 1) % 2
+        mode_names = ["TEXTURED", "SKELETON"]
+        print(f"🔄 Mode : {mode_names[self.render_mode]}")
 
     def get_bone_vertices(self, bone):
-        """Récupère les vertices d'un os en coordonnées écran avec offset caméra"""
+        """Récupère les sommets d'un os à l'écran"""
         vertices = [(bone.body.transform * v) * self.display.PPM
                     for v in bone.fixture.shape.vertices]
-        vertices = [(v[0] - self.display.camera_x * self.display.PPM,
-                     self.display.height - (v[1] - self.display.camera_y * self.display.PPM))
-                    for v in vertices]
-        return vertices
-
-    # ==================== MODE IMAGE ====================
-
-    def draw_image_bone(self, bone, region_name):
-        """Dessine un os avec texture d'image"""
-        vertices = self.get_bone_vertices(bone)
-        texture_region = self.texture_mapper.get_image_region(region_name)
-
-        if texture_region:
-            self.texture_mapper.warp_texture_to_bone(
-                self.texture_surface,
-                texture_region,
-                vertices
-            )
-        else:
-            # Fallback : dessiner en couleur si texture indisponible
-            pygame.draw.polygon(self.texture_surface, self.colors.get(region_name.split('_')[0], (200, 200, 200)),
-                                vertices)
-
-    # ==================== MODE TEXTURE ====================
-
-    def draw_textured_bone(self, bone, color, add_shine=True):
-        """Dessine un os avec texture stylisée (mode actuel)"""
-        vertices = self.get_bone_vertices(bone)
-
-        pygame.draw.polygon(self.display.screen, color, vertices)
-
-        darker = tuple(max(0, c - 30) for c in color)
-        pygame.draw.polygon(self.display.screen, darker, vertices, 2)
-
-        if add_shine and len(vertices) >= 4:
-            shine_color = tuple(min(255, c + 40) for c in color)
-            mid_top1 = ((vertices[0][0] + vertices[1][0]) // 2,
-                        (vertices[0][1] + vertices[1][1]) // 2)
-            mid_top2 = ((vertices[2][0] + vertices[3][0]) // 2,
-                        (vertices[2][1] + vertices[3][1]) // 2)
-            pygame.draw.line(self.display.screen, shine_color, mid_top1, mid_top2, 2)
-
-    # ==================== MODE SKELETON ====================
+        return [(v[0] - self.display.camera_x * self.display.PPM,
+                 self.display.height - (v[1] - self.display.camera_y * self.display.PPM))
+                for v in vertices]
 
     def draw_skeleton_bone(self, bone):
-        """Dessine un os en mode skeleton (blanc avec coins arrondis)"""
+        """Dessine un os en mode skeleton"""
         vertices = self.get_bone_vertices(bone)
-
         if len(vertices) >= 4:
-            pygame.draw.polygon(self.display.screen, (255, 255, 255), vertices)
-
-            # Coins arrondis
-            radius = 3
+            pygame.draw.polygon(self.display.screen, self.colors['bone'], vertices)
             for vertex in vertices:
-                pygame.draw.circle(self.display.screen, (255, 255, 255),
-                                   (int(vertex[0]), int(vertex[1])), radius)
-
-    # ==================== MUSCLES ====================
+                pygame.draw.circle(self.display.screen, self.colors['bone'],
+                                   (int(vertex[0]), int(vertex[1])), 3)
 
     def draw_muscle(self, muscle):
-        """Dessine un muscle (adapté au mode)"""
+        """Dessine un muscle"""
         pos_a = muscle.body_a.transform * muscle.anchor_a
         pos_b = muscle.body_b.transform * muscle.anchor_b
-
         screen_a = self.display.to_screen(pos_a)
         screen_b = self.display.to_screen(pos_b)
 
-        # Couleur basée sur la tension
         if abs(muscle.target_speed) > 0.1:
             color = self.colors['muscle_active']
             thickness = 6
-
-            # Glow uniquement en modes TEXTURE et SKELETON
-            if self.render_mode > 0:
-                glow_radius = 25 if self.render_mode == 2 else 15
-                self.draw_glow_line(screen_a, screen_b, color, radius=glow_radius)
+            self.draw_glow_line(screen_a, screen_b, color, radius=25)
         else:
             color = self.colors['muscle_relaxed']
             thickness = 4
 
-        # Ligne du muscle
         pygame.draw.line(self.display.screen, color, screen_a, screen_b, thickness)
-
-        # Articulations (seulement en mode TEXTURE)
-        if self.render_mode == 1:
-            joint_color = self.colors['joint']
-            pygame.draw.circle(self.display.screen, joint_color, screen_a, 6)
-            pygame.draw.circle(self.display.screen, joint_color, screen_b, 6)
-
-        # Petits cercles
         pygame.draw.circle(self.display.screen, color, screen_a, 5)
         pygame.draw.circle(self.display.screen, color, screen_b, 5)
 
     def draw_glow_line(self, pos_a, pos_b, color, radius=10):
-        """Dessine un effet de glow autour d'une ligne"""
-        steps = 5 if self.render_mode == 2 else 3
-        base_alpha = 50 if self.render_mode == 2 else 30
-
+        """Effet de glow pour les muscles actifs"""
+        steps = 5
+        base_alpha = 50
         for i in range(steps):
             alpha = base_alpha - i * 10
             glow_radius = radius - i * 4
             glow_color = (*color, alpha)
-
             pygame.draw.circle(self.glow_surface, glow_color, pos_a, glow_radius)
             pygame.draw.circle(self.glow_surface, glow_color, pos_b, glow_radius)
 
-    # ==================== DESSIN PRINCIPAL ====================
-
     def draw_quadruped(self, quadruped):
-        """Dessine le quadrupède selon le mode sélectionné"""
-        # Réinitialiser les surfaces
+        """Dessine le quadrupède selon le mode"""
         self.glow_surface.fill((0, 0, 0, 0))
-        self.texture_surface.fill((0, 0, 0, 0))
 
-        # ===== MODE 0 : IMAGE =====
         if self.render_mode == 0:
-            # Dessiner avec textures d'image
-            bone_regions = {
-                quadruped.body: 'body',
-                quadruped.neck: 'neck',
-                quadruped.front_thigh: 'front_thigh',
-                quadruped.front_shin: 'front_shin',
-                quadruped.front_foot: 'front_foot',
-                quadruped.back_thigh: 'back_thigh',
-                quadruped.back_shin: 'back_shin',
-                quadruped.back_foot: 'back_foot',
-                quadruped.tail_bottom: 'tail_bottom',
-                quadruped.tail_mid: 'tail_mid',
-                quadruped.tail_high: 'tail_high',
-            }
+            # MODE TEXTURED : Dessiner avec les parties découpées
+            self.textured_overlay.draw_quadruped(self.display, quadruped)
 
-            for bone, region in bone_regions.items():
-                self.draw_image_bone(bone, region)
-
-            # Appliquer la texture surface
-            self.display.screen.blit(self.texture_surface, (0, 0))
-
-        # ===== MODE 1 : TEXTURE =====
         elif self.render_mode == 1:
-            for bone in quadruped.bones:
-                if bone == quadruped.body:
-                    self.draw_textured_bone(bone, self.colors['body'], add_shine=True)
-                elif bone == quadruped.neck:
-                    self.draw_textured_bone(bone, self.colors['neck'], add_shine=True)
-                elif bone in [quadruped.tail_bottom, quadruped.tail_mid, quadruped.tail_high]:
-                    self.draw_textured_bone(bone, self.colors['tail'], add_shine=False)
-                else:
-                    self.draw_textured_bone(bone, self.colors['legs'], add_shine=True)
-            # ===== MUSCLES =====
-            # Pré-calculer les glows
-            for muscle in quadruped.muscles:
-                if abs(muscle.target_speed) > 0.1 and self.render_mode > 0:
-                    pos_a = muscle.body_a.transform * muscle.anchor_a
-                    pos_b = muscle.body_b.transform * muscle.anchor_b
-                    screen_a = self.display.to_screen(pos_a)
-                    screen_b = self.display.to_screen(pos_b)
-                    color = self.colors['muscle_active']
-                    glow_radius = 25 if self.render_mode == 2 else 15
-                    self.draw_glow_line(screen_a, screen_b, color, radius=glow_radius)
-
-            # Appliquer le glow
-            if self.render_mode > 0:
-                self.display.screen.blit(self.glow_surface, (0, 0))
-
-            # Dessiner les muscles
-            for muscle in quadruped.muscles:
-                self.draw_muscle(muscle)
-
-
-        # ===== MODE 2 : SKELETON =====
-        elif self.render_mode == 2:
+            # MODE SKELETON : Dessiner le squelette
             for bone in quadruped.bones:
                 self.draw_skeleton_bone(bone)
-            # ===== MUSCLES =====
-            # Pré-calculer les glows
+
+            # Muscles actifs avec glow
             for muscle in quadruped.muscles:
-                if abs(muscle.target_speed) > 0.1 and self.render_mode > 0:
+                if abs(muscle.target_speed) > 0.1:
                     pos_a = muscle.body_a.transform * muscle.anchor_a
                     pos_b = muscle.body_b.transform * muscle.anchor_b
                     screen_a = self.display.to_screen(pos_a)
                     screen_b = self.display.to_screen(pos_b)
-                    color = self.colors['muscle_active']
-                    glow_radius = 25 if self.render_mode == 2 else 15
-                    self.draw_glow_line(screen_a, screen_b, color, radius=glow_radius)
+                    self.draw_glow_line(screen_a, screen_b, self.colors['muscle_active'], radius=25)
 
-            # Appliquer le glow
-            if self.render_mode > 0:
-                self.display.screen.blit(self.glow_surface, (0, 0))
+            self.display.screen.blit(self.glow_surface, (0, 0))
 
-            # Dessiner les muscles
+            # Dessiner tous les muscles
             for muscle in quadruped.muscles:
                 self.draw_muscle(muscle)
 
-
-
     def draw_status(self):
-        """Affiche le statut du mode de rendu"""
-        mode_names = ["IMAGE", "TEXTURE", "SKELETON"]
-        mode_colors = [(100, 200, 255), (100, 255, 100), (255, 255, 100)]
+        """Affiche le mode actuel"""
+        mode_names = ["TEXTURED", "SKELETON"]
+        mode_colors = [(255, 150, 50), (255, 255, 100)]
 
         current_mode = mode_names[self.render_mode]
         current_color = mode_colors[self.render_mode]
 
-        # Afficher le mode actuel
         self.display.draw_text(f"Mode: {current_mode}",
                                (10, self.display.height - 30), current_color)
-
-        # Instructions
-        self.display.draw_text("TAB: Changer mode (Image/Texture/Skeleton)",
+        self.display.draw_text("TAB: Changer mode (Textured/Skeleton)",
                                (10, self.display.height - 55), (200, 200, 200))
 
-        # Avertissement si image non chargée
-        if self.render_mode == 0 and not self.texture_mapper.image_loaded:
-            self.display.draw_text("⚠️  cat_texture.png non trouvé !",
-                                   (10, self.display.height - 80), (255, 100, 100))
+        # Afficher le nombre de textures chargées
+        loaded = sum(1 for tex in self.textured_overlay.textures.values() if tex.loaded)
+        total = len(self.textured_overlay.textures)
+        self.display.draw_text(f"Textures: {loaded}/{total}",
+                               (10, self.display.height - 80), (150, 200, 255))

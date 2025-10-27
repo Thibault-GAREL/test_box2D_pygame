@@ -19,7 +19,7 @@ def main():
 
     # Initialiser le système d'overlay visuel avec l'image du chat
     # IMPORTANT : fox_texture.png doit être dans le même dossier !
-    overlay = VisualOverlay(display, fox_image_path="img/fox_texture.png")
+    overlay = VisualOverlay(display, parts_folder="img", global_scale=0.3)
 
     # Initialiser le système de parallaxe
     parallax = ParallaxManager()
