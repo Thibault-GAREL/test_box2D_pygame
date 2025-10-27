@@ -35,10 +35,19 @@ def main():
     # parallax.add_layer("mountains.png", depth=0.2, y_position=3, repeat=True)
 
     # Éléments qui se répètent avec espacement ALÉATOIRE:
+    parallax.add_layer("img/cloud.png", depth=0.07, x_position=-1, y_position=5, repeat=True, repeat_spacing=(9, 12))
+    parallax.add_layer("img/cloud2.png", depth=0.05, x_position=5, y_position=4, repeat=True, repeat_spacing=(5, 7))
+
     parallax.add_layer("img/mountain2.png", depth=0.1, x_position=0, y_position=0, repeat=True, repeat_spacing=(9, 12))
 
     parallax.add_layer("img/hill1.png", depth=0.15, x_position=-4, y_position=-0.3, repeat=True, repeat_spacing=(6, 10))
-    parallax.add_layer("img/hill1.png", depth=0.14, x_position=4, y_position=-0.3, repeat=True, repeat_spacing=(6, 10))
+    parallax.add_layer("img/hill2.png", depth=0.14, x_position=15, y_position=-0.3, repeat=True, repeat_spacing=(5, 10))
+    parallax.add_layer("img/hill3.png", depth=0.19, x_position=-15, y_position=-0.3, repeat=True, repeat_spacing=(4, 8))
+    parallax.add_layer("img/hill4.png", depth=0.23, x_position=8, y_position=-0.3, repeat=True, repeat_spacing=(6, 8))
+    parallax.add_layer("img/hill1.png", depth=0.15, x_position=-6, y_position=-0.3, repeat=True, repeat_spacing=(6, 10))
+    parallax.add_layer("img/hill2.png", depth=0.14, x_position=20, y_position=-0.3, repeat=True, repeat_spacing=(5, 10))
+    parallax.add_layer("img/hill3.png", depth=0.19, x_position=-19, y_position=-0.3, repeat=True, repeat_spacing=(4, 8))
+    parallax.add_layer("img/hill4.png", depth=0.23, x_position=18, y_position=-0.3, repeat=True, repeat_spacing=(6, 8))
 
     parallax.add_layer("img/tree3.png", depth=0.7, x_position=0, y_position=0, repeat=True, repeat_spacing=(4, 10))
     parallax.add_layer("img/tree3.png", depth=0.7, x_position=3, y_position=0, repeat=True, repeat_spacing=(4, 10))
