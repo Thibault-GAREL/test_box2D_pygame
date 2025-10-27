@@ -113,7 +113,7 @@ class VisualOverlay:
 
     def __init__(self, display, cat_image_path="cat_texture.png"):
         self.display = display
-        self.render_mode = 0  # 0 = IMAGE, 1 = TEXTURE, 2 = SKELETON
+        self.render_mode = 2  # 0 = IMAGE, 1 = TEXTURE, 2 = SKELETON
 
         # Initialiser le texture mapper
         self.texture_mapper = TextureMapper(cat_image_path)
