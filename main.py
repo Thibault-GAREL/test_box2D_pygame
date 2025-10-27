@@ -36,7 +36,7 @@ def main():
 
     # Éléments qui se répètent avec espacement ALÉATOIRE:
     parallax.add_layer("img/mountain2.png", depth=0.1, x_position=0, y_position=0, repeat=True, repeat_spacing=(9, 12))
-    parallax.add_layer("img/rock.png", depth=0.7, x_position=0, y_position=0.5, repeat=True, repeat_spacing=(8, 15))
+    parallax.add_layer("img/tree3.png", depth=0.7, x_position=0, y_position=0, repeat=True, repeat_spacing=(8, 15))
     # parallax.add_layer("cloud.png", depth=0.1, x_position=0, y_position=8, repeat=True, repeat_spacing=(10, 20))
 
     # Éléments qui se répètent avec espacement FIXE:
