@@ -104,16 +104,16 @@ class Quadruped:
 
         # Créer les os
         width_bone = 0.05
-        body_height = 1
+        body_height = 1.3
         body_height_tail_head = 1.4
         density_bone = 0.5
-        thigh_height = 0.3
-        shin_height_f = 0.2
-        shin_height_b = 0.3
+        thigh_height = 0.5
+        shin_height_f = 0.3
+        shin_height_b = 0.4
         foot_height = 0.2
         ankle_height_f = 0.2
-        ankle_height_b = 0.15
-        neck_height = 0.3
+        ankle_height_b = 0.2
+        neck_height = 0.4
         tail_height = 0.4
         marge = 0.05
         self.body = Bone(world, x, y, body_height_tail_head, width_bone, density=density_bone)
@@ -192,7 +192,7 @@ class Quadruped:
         self.muscle9 = Muscle(
             world, self.body.body, self.neck.body,
             (body_height_tail_head/2 + marge, width_bone), (0, neck_height / 2),
-            math.pi * 0.75, math.pi * 0.75, max_torque=40
+            math.pi * 0.7, math.pi * 0.7, max_torque=40
         )
 
         self.muscle10 = Muscle(
