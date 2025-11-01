@@ -104,38 +104,38 @@ class TexturedOverlay:
 
         # Facteurs d'échelle individuels par partie (multipliés par global_scale)
         self.part_scales = {
-            'body': 1.0,
-            'neck': 1.0,
-            'head': 1.0,
-            'front_thigh': 1.0,
-            'front_shin': 1.3,
-            'front_ankle': 1.0,
+            'body': 1.3,
+            'neck': 1.2,
+            'head': 1.2,
+            'front_thigh': 1.1,
+            'front_shin': 1.5,
+            'front_ankle': 1.2,
             'front_foot': 1.0,
             'back_thigh': 1.0,
-            'back_shin': 1.0,
-            'back_ankle': 1.0,
-            'back_foot': 1.0,
-            'tail_bottom': 1.0,
-            'tail_mid': 1.0,
-            'tail_high': 1.0,
+            'back_shin': 1.3,
+            'back_ankle': 1.3,
+            'back_foot': 1.3,
+            'tail_bottom': 1.3,
+            'tail_mid': 1.3,
+            'tail_high': 1.3,
         }
 
         # Décalages (offsets) en pixels pour ajuster la position de chaque image
         self.part_offsets = {
-            'body': (0, 0),
-            'neck': (0, 0),
-            'head': (0, 0),
+            'body': (-10, 0),
+            'neck': (0, 20),
+            'head': (0, -10),
             'front_thigh': (0, 0),
-            'front_shin': (0, 0),
+            'front_shin': (-5, 0),
             'front_ankle': (0, 7),
             'front_foot': (0, 0),
             'back_thigh': (0, 0),
             'back_shin': (0, 0),
-            'back_ankle': (0, 0),
+            'back_ankle': (0, -5),
             'back_foot': (0, 0),
             'tail_bottom': (0, 0),
             'tail_mid': (0, 0),
-            'tail_high': (0, 0),
+            'tail_high': (0, -10),
         }
 
         # Rotation offsets en DEGRÉS pour ajuster l'angle de chaque image
@@ -143,17 +143,17 @@ class TexturedOverlay:
             'body': 0.24,
             'neck': 126.27,
             'head': -116,
-            'front_thigh': 2.07,
-            'front_shin': 3.45,
-            'front_ankle': 14.14 - 10,
+            'front_thigh': -10,
+            'front_shin': 3.45 - 10,
+            'front_ankle': 14.14 - 20,
             'front_foot': 82.07,
             'back_thigh': -4.55,
             'back_shin': -6.57,
-            'back_ankle': -21.39,
+            'back_ankle': 0,
             'back_foot': 87.51,
-            'tail_bottom': -107.67 + 90,
+            'tail_bottom': -107.67 + 95,
             'tail_mid': -160.63 + 130,
-            'tail_high': 128.06 + 180,
+            'tail_high': 128.06 + 170,
         }
 
         # Ordre de dessin
@@ -161,17 +161,17 @@ class TexturedOverlay:
             'tail_high',  # Queue (fond)
             'tail_mid',
             'tail_bottom',
-            # 'back_foot',  # Patte arrière (fond)
-            # 'back_ankle',
-            # 'back_shin',
-            # 'back_thigh',
+            'back_foot',  # Patte arrière (fond)
+            'back_ankle',
+            'back_shin',
+            'back_thigh',
             'front_foot',  # Patte avant
             'front_ankle',
             'front_shin',
             'front_thigh',
-            # 'neck',  # Cou
-            # 'head',  # Tête
-            # 'body',  # Corps (premier plan)
+            'neck',  # Cou
+            'head',  # Tête
+            'body',  # Corps (premier plan)
         ]
 
         # Mapping nom -> fichier
