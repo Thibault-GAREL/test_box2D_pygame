@@ -10,6 +10,8 @@ from display import Display
 from overlay import VisualOverlay
 # Import du système de parallaxe
 from parallax import ParallaxManager
+# # Import du système de soft body
+# from soft_body import SoftBodyQuadruped
 
 
 
@@ -22,6 +24,15 @@ def main():
     # Initialiser le système d'overlay visuel avec l'image du chat
     # IMPORTANT : fox_texture.png doit être dans le même dossier !
     overlay = VisualOverlay(display, parts_folder="img", global_scale=0.3)
+
+    # # Initialiser le système de soft body
+    # soft_body_quadruped = SoftBodyQuadruped(physics_world.world, quadruped)
+    # print("\n🎨 Système soft body initialisé!\n")
+    #
+    # # Initialiser le système d'overlay visuel avec l'image du chat
+    # # IMPORTANT : fox_texture.png doit être dans le même dossier !
+    # overlay = VisualOverlay(display, parts_folder="img", global_scale=0.3,
+    #                         soft_body_quadruped=soft_body_quadruped)
 
     # Initialiser le système de parallaxe
     parallax = ParallaxManager()
@@ -190,6 +201,14 @@ def main():
         # Mettre à jour la physique
         quadruped.update()
         physics_world.step(TIME_STEP)
+
+        # # Mettre à jour la physique
+        # quadruped.update()
+        #
+        # # Mettre à jour le soft body
+        # soft_body_quadruped.update()
+        #
+        # physics_world.step(TIME_STEP)
 
         # ===== MISE À JOUR CAMÉRA =====
         # En mode suivi automatique, la caméra suit le corps du quadrupède

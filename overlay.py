@@ -127,7 +127,7 @@ class TexturedOverlay:
             'head': (0, -10),
             'front_thigh': (0, 0),
             'front_shin': (-5, 0),
-            'front_ankle': (0, 7),
+            'front_ankle': (0, 0),
             'front_foot': (0, 0),
             'back_thigh': (0, 0),
             'back_shin': (0, 0),
@@ -243,6 +243,9 @@ class VisualOverlay:
         self.display = display
         self.render_mode = 0  # 0=TEXTURED, 1=SKELETON, 2=OVERLAY (texture + skeleton)
 
+        # self.render_mode = 0  # 0=TEXTURED, 1=SKELETON, 2=OVERLAY, 3=SOFTBODY
+        # self.soft_body_quadruped = soft_body_quadruped  # Référence au système soft body
+
         self.textured_overlay = TexturedOverlay(parts_folder, global_scale=global_scale)
 
         self.colors = {
@@ -259,6 +262,11 @@ class VisualOverlay:
         self.render_mode = (self.render_mode + 1) % 3
         mode_names = ["TEXTURED", "SKELETON", "OVERLAY"]
         print(f"🔄 Mode : {mode_names[self.render_mode]}")
+
+        # """Bascule entre TEXTURED, SKELETON, OVERLAY et SOFTBODY"""
+        # self.render_mode = (self.render_mode + 1) % 4
+        # mode_names = ["TEXTURED", "SKELETON", "OVERLAY", "SOFTBODY"]
+        # print(f"🔄 Mode : {mode_names[self.render_mode]}")
 
     def get_bone_vertices(self, bone):
         """Récupère les sommets d'un os à l'écran"""
@@ -370,6 +378,16 @@ class VisualOverlay:
             # Appliquer la surface overlay sur l'écran
             self.display.screen.blit(overlay_surface, (0, 0))
 
+        # elif self.render_mode == 3:
+        #     # MODE SOFTBODY : Afficher le soft body
+        #     if self.soft_body_quadruped:
+        #         self.soft_body_quadruped.draw(self.display)
+        #     else:
+        #         # Message d'erreur si soft body non initialisé
+        #         font = pygame.font.Font(None, 36)
+        #         text = font.render("SOFT BODY NON INITIALISÉ", True, (255, 50, 50))
+        #         self.display.screen.blit(text, (self.display.width // 2 - 200, self.display.height // 2))
+
     def draw_status(self):
         """Affiche le mode actuel"""
         mode_names = ["TEXTURED", "SKELETON", "OVERLAY"]
@@ -387,3 +405,16 @@ class VisualOverlay:
         total = len(self.textured_overlay.textures)
         self.display.draw_text(f"Textures: {loaded}/{total}",
                                (10, self.display.height - 80), (150, 200, 255))
+
+    # def draw_status(self):
+    #     """Affiche le mode actuel"""
+    #     mode_names = ["TEXTURED", "SKELETON", "OVERLAY", "SOFTBODY"]
+    #     mode_colors = [(255, 150, 50), (255, 255, 100), (150, 255, 150), (100, 200, 255)]
+    #
+    #     current_mode = mode_names[self.render_mode]
+    #     current_color = mode_colors[self.render_mode]
+    #
+    #     self.display.draw_text(f"Mode: {current_mode}",
+    #                            (10, self.display.height - 30), current_color)
+    #     self.display.draw_text("TAB: Changer mode (Textured/Skeleton/Overlay/Softbody)",
+    #                            (10, self.display.height - 55), (200, 200, 200))
