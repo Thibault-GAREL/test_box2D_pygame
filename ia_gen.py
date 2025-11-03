@@ -49,8 +49,8 @@ class GeneticAlgorithm:
 
         # Gestion du temps adaptatif
         self.adaptive_time = adaptive_time
-        self.base_time = base_time  # Temps de base (frames)
-        self.max_time = max_time  # Temps maximum (frames)
+        self.base_time = base_time
+        self.max_time = max_time
         self.current_time_limit = base_time
 
         # Configuration du fitness
@@ -62,23 +62,15 @@ class GeneticAlgorithm:
             'time_bonus': 0.5
         }
 
-        # Actions possibles (16 actions pour contrôler 8 muscles)
-        # 0: rien
-        # 1-2: muscle 0 (contract/extend)
-        # 3-4: muscle 1 (contract/extend)
-        # 5-6: muscle 2 (contract/extend)
-        # 7-8: muscle 3 (contract/extend)
-        # 9-10: muscle 4 (contract/extend)
-        # 11-12: muscle 5 (contract/extend)
-        # 13-14: muscle 6 (contract/extend)
-        # 15-16: muscle 7 (contract/extend)
+        # Timestamp pour mesurer la durée de chaque génération
+        self.generation_start_time = None
+
         self.num_actions = 17
 
         self._initialize_population()
 
     def _get_next_training_number(self):
         """Détermine le numéro d'entraînement suivant"""
-        # Créer le dossier data s'il n'existe pas
         os.makedirs('data', exist_ok=True)
 
         if not os.path.exists(self.csv_file):
@@ -107,14 +99,9 @@ class GeneticAlgorithm:
 
     def action_to_keys(self, action: int) -> dict:
         """Convertit une action en dictionnaire de contrôle des muscles"""
-        # Retourne quel muscle contrôler et comment
-        # Format: {'muscle': numéro (0-7), 'action': 'contract'/'extend'/'relax'}
-
         if action == 0:
             return {'muscle': None, 'action': 'relax'}
 
-        # Actions 1-16 contrôlent les 8 muscles
-        # 1-2: muscle 0, 3-4: muscle 1, etc.
         muscle_index = (action - 1) // 2
         is_contract = (action - 1) % 2 == 0
 
@@ -125,27 +112,20 @@ class GeneticAlgorithm:
 
     def calculate_fitness(self, individual: Individual, distance: float,
                           stability: float, energy: float, time_alive: int):
-        """
-        Calcule le fitness d'un individu selon la configuration
-        """
+        """Calcule le fitness d'un individu selon la configuration"""
         fitness = 0.0
 
-        # Récompense pour la distance parcourue
         fitness += distance * self.fitness_config['distance_weight']
 
-        # Récompense si stable OU pénalité si tombé
-        if stability > 0.5:  # Pas tombé
+        if stability > 0.5:
             fitness += self.fitness_config['stability_weight']
-        else:  # Tombé
-            fitness += self.fitness_config['fallen_penalty']  # C'est négatif
+        else:
+            fitness += self.fitness_config['fallen_penalty']
 
-        # Pénalité pour l'énergie utilisée
         fitness -= energy * self.fitness_config['energy_penalty']
-
-        # Bonus pour le temps de survie
         fitness += time_alive * self.fitness_config['time_bonus']
 
-        individual.fitness = fitness  # Peut être négatif maintenant
+        individual.fitness = fitness
         individual.distance = distance
         individual.stability = stability
         individual.energy = energy
@@ -190,8 +170,11 @@ class GeneticAlgorithm:
 
     def evolve(self):
         """Fait évoluer la population d'une génération"""
-        # Statistiques avant évolution
+        # Sauvegarder les stats de la génération qui vient de se terminer
         self._save_generation_stats()
+
+        # Marquer le début de la PROCHAINE génération
+        self.generation_start_time = datetime.now()
 
         # Adapter le temps si activé
         if self.adaptive_time:
@@ -232,56 +215,145 @@ class GeneticAlgorithm:
 
     def _update_time_limit(self):
         """Met à jour la limite de temps en fonction des performances"""
-        # Calculer la distance moyenne de la génération
         avg_distance = np.mean([ind.distance for ind in self.population])
         best_distance = max([ind.distance for ind in self.population])
 
-        # Si l'IA progresse bien, on augmente le temps disponible
-        # Formule: temps = base_time + (distance_moyenne * facteur)
-        # Plus l'IA va loin, plus elle a de temps pour explorer
-
-        if best_distance > 1.0:  # Si le meilleur a parcouru au moins 1 mètre
-            # Augmenter progressivement le temps
+        if best_distance > 1.0:
             new_time = int(self.base_time + (best_distance * 50))
             self.current_time_limit = min(new_time, self.max_time)
         else:
-            # Rester au temps de base
             self.current_time_limit = self.base_time
 
-        # Mettre à jour genome_length pour la prochaine génération
         self.genome_length = self.current_time_limit
 
+    def _calculate_muscle_usage_stats(self):
+        """Calcule les statistiques d'utilisation des muscles pour toute la génération"""
+        # Compter l'utilisation de chaque muscle à travers toute la population
+        muscle_usage_counts = {
+            'muscle0_contract': 0,
+            'muscle0_extend': 0,
+            'muscle1_contract': 0,
+            'muscle1_extend': 0,
+            'muscle2_contract': 0,
+            'muscle2_extend': 0,
+            'muscle3_contract': 0,
+            'muscle3_extend': 0,
+            'muscle4_contract': 0,
+            'muscle4_extend': 0,
+            'muscle5_contract': 0,
+            'muscle5_extend': 0,
+            'muscle6_contract': 0,
+            'muscle6_extend': 0,
+            'muscle7_contract': 0,
+            'muscle7_extend': 0,
+            'nothing': 0
+        }
+
+        total_actions = 0
+
+        # Parcourir tous les individus de la génération
+        for individual in self.population:
+            unique, counts = np.unique(individual.genome, return_counts=True)
+            action_counts = dict(zip(unique, counts))
+
+            # Action 0 = nothing
+            muscle_usage_counts['nothing'] += action_counts.get(0, 0)
+
+            # Actions 1-16 pour les 8 muscles (contract/extend)
+            for action_id, count in action_counts.items():
+                if action_id > 0 and action_id <= 16:
+                    muscle_index = (action_id - 1) // 2
+                    is_contract = (action_id - 1) % 2 == 0
+
+                    muscle_name = f'muscle{muscle_index}_{"contract" if is_contract else "extend"}'
+                    muscle_usage_counts[muscle_name] += count
+
+            total_actions += len(individual.genome)
+
+        # Calculer les pourcentages
+        muscle_usage_percent = {}
+        for muscle_name, count in muscle_usage_counts.items():
+            percent = (count / total_actions * 100) if total_actions > 0 else 0
+            muscle_usage_percent[f'usage_{muscle_name}_percent'] = round(percent, 2)
+
+        # Calculer aussi l'utilisation totale par muscle (contract + extend)
+        for i in range(8):
+            contract_key = f'usage_muscle{i}_contract_percent'
+            extend_key = f'usage_muscle{i}_extend_percent'
+            total_muscle = muscle_usage_percent.get(contract_key, 0) + muscle_usage_percent.get(extend_key, 0)
+            muscle_usage_percent[f'usage_muscle{i}_total_percent'] = round(total_muscle, 2)
+
+        return muscle_usage_percent
+
     def _save_generation_stats(self):
-        """Sauvegarde les statistiques de la génération dans le CSV"""
+        """Sauvegarde les statistiques détaillées de la génération dans le CSV"""
+        generation_end_time = datetime.now()
+
+        # Calculer la durée de la génération
+        if self.generation_start_time:
+            duration = (generation_end_time - self.generation_start_time).total_seconds()
+        else:
+            duration = 0
+            self.generation_start_time = generation_end_time
+
+        # Extraire toutes les valeurs
         fitnesses = [ind.fitness for ind in self.population]
         distances = [ind.distance for ind in self.population]
         stabilities = [ind.stability for ind in self.population]
         energies = [ind.energy for ind in self.population]
         times_alive = [ind.time_alive for ind in self.population]
 
-        best_ind = max(self.population, key=lambda x: x.fitness)
-        worst_ind = min(self.population, key=lambda x: x.fitness)
+        # Calculer l'utilisation moyenne des muscles pour toute la génération
+        muscle_usage = self._calculate_muscle_usage_stats()
 
         data = {
+            # Informations générales
             'training_number': self.training_number,
             'generation': self.generation,
-            'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            'best_fitness': best_ind.fitness,
-            'worst_fitness': worst_ind.fitness,
-            'avg_fitness': np.mean(fitnesses),
-            'median_fitness': np.median(fitnesses),
-            'std_fitness': np.std(fitnesses),
-            'best_distance': best_ind.distance,
-            'avg_distance': np.mean(distances),
-            'median_distance': np.median(distances),
-            'best_stability': best_ind.stability,
-            'avg_stability': np.mean(stabilities),
-            'best_energy': best_ind.energy,
-            'avg_energy': np.mean(energies),
-            'best_time_alive': best_ind.time_alive,
-            'avg_time_alive': np.mean(times_alive),
+            'generation_start_timestamp': self.generation_start_time.strftime('%Y-%m-%d %H:%M:%S'),
+            'generation_end_timestamp': generation_end_time.strftime('%Y-%m-%d %H:%M:%S'),
+            'generation_duration_seconds': duration,
+
+            # Fitness (reward) - statistiques complètes
+            'fitness_best': np.max(fitnesses),
+            'fitness_worst': np.min(fitnesses),
+            'fitness_avg': np.mean(fitnesses),
+            'fitness_median': np.median(fitnesses),
+            'fitness_std': np.std(fitnesses),
+
+            # Distance - statistiques complètes
+            'distance_best': np.max(distances),
+            'distance_worst': np.min(distances),
+            'distance_avg': np.mean(distances),
+            'distance_median': np.median(distances),
+            'distance_std': np.std(distances),
+
+            # Stabilité - statistiques complètes
+            'stability_best': np.max(stabilities),
+            'stability_worst': np.min(stabilities),
+            'stability_avg': np.mean(stabilities),
+            'stability_median': np.median(stabilities),
+            'stability_std': np.std(stabilities),
+
+            # Énergie - statistiques complètes (best = minimum car moins c'est mieux)
+            'energy_best': np.min(energies),  # Meilleur = minimum d'énergie
+            'energy_worst': np.max(energies),  # Pire = maximum d'énergie
+            'energy_avg': np.mean(energies),
+            'energy_median': np.median(energies),
+            'energy_std': np.std(energies),
+
+            # Temps de vie - statistiques complètes
+            'time_alive_best': np.max(times_alive),
+            'time_alive_worst': np.min(times_alive),
+            'time_alive_avg': np.mean(times_alive),
+            'time_alive_median': np.median(times_alive),
+            'time_alive_std': np.std(times_alive),
+
+            # Records absolus
             'absolute_best_fitness': self.best_individual.fitness if self.best_individual else 0,
             'absolute_best_distance': self.best_individual.distance if self.best_individual else 0,
+
+            # Paramètres
             'population_size': self.population_size,
             'genome_length': self.genome_length,
             'current_time_limit': self.current_time_limit,
@@ -289,6 +361,9 @@ class GeneticAlgorithm:
             'crossover_rate': self.crossover_rate,
             'elite_size': self.elite_size
         }
+
+        # Ajouter les statistiques d'utilisation des muscles
+        data.update(muscle_usage)
 
         df = pd.DataFrame([data])
 
@@ -299,9 +374,7 @@ class GeneticAlgorithm:
 
     def save_individual_stats(self, individual_index: int):
         """Sauvegarde les statistiques d'un individu spécifique"""
-        # Créer le dossier data s'il n'existe pas
         os.makedirs('data', exist_ok=True)
-
         csv_file = 'data/individuals_data.csv'
 
         individual = self.population[individual_index]
@@ -309,7 +382,6 @@ class GeneticAlgorithm:
         unique, counts = np.unique(individual.genome, return_counts=True)
         action_counts = dict(zip(unique, counts))
 
-        # Noms des actions pour les 8 muscles
         action_names = ['nothing',
                         'muscle0_contract', 'muscle0_extend',
                         'muscle1_contract', 'muscle1_extend',
@@ -345,7 +417,6 @@ class GeneticAlgorithm:
 
     def save(self, filename='data/fox_ai.pkl'):
         """Sauvegarde l'état de l'algorithme génétique"""
-        # Créer le dossier data s'il n'existe pas
         os.makedirs('data', exist_ok=True)
 
         data = {
@@ -372,17 +443,12 @@ class GeneticAlgorithm:
         with open(filename, 'rb') as f:
             data = pickle.load(f)
 
-        # Récupérer le training_number de la sauvegarde
         saved_training_number = data.get('training_number', 1)
 
-        # Si le training_number actuel est différent, c'est un nouvel entraînement
-        # Dans ce cas, on ne charge PAS la génération (on repart de 0)
         if saved_training_number != self.training_number:
-            # Nouvel entraînement : on garde generation = 0 et on ne charge rien d'autre
             print(f"   Nouvel entraînement détecté (Training #{self.training_number})")
             return False
 
-        # Même training_number : on continue l'entraînement existant
         self.population = data['population']
         self.generation = data['generation']
         self.best_individual = data['best_individual']
@@ -405,7 +471,6 @@ class GeneticAlgorithm:
         try:
             df = pd.read_csv(self.csv_file)
 
-            # Créer un résumé par training
             summary = []
             for train_num in sorted(df['training_number'].unique()):
                 train_df = df[df['training_number'] == train_num]
@@ -413,16 +478,18 @@ class GeneticAlgorithm:
                 summary.append({
                     'training_number': train_num,
                     'total_generations': len(train_df),
-                    'start_date': train_df.iloc[0]['timestamp'],
-                    'end_date': train_df.iloc[-1]['timestamp'],
-                    'first_best_fitness': train_df.iloc[0]['best_fitness'],
-                    'final_best_fitness': train_df.iloc[-1]['best_fitness'],
+                    'start_date': train_df.iloc[0]['generation_start_timestamp'],
+                    'end_date': train_df.iloc[-1]['generation_end_timestamp'],
+                    'total_duration_seconds': train_df['generation_duration_seconds'].sum(),
+                    'avg_generation_duration_seconds': train_df['generation_duration_seconds'].mean(),
+                    'first_best_fitness': train_df.iloc[0]['fitness_best'],
+                    'final_best_fitness': train_df.iloc[-1]['fitness_best'],
                     'best_fitness_ever': train_df['absolute_best_fitness'].max(),
                     'best_distance_ever': train_df['absolute_best_distance'].max(),
-                    'avg_fitness': train_df['avg_fitness'].mean(),
-                    'avg_distance': train_df['avg_distance'].mean(),
-                    'avg_stability': train_df['avg_stability'].mean(),
-                    'avg_energy': train_df['avg_energy'].mean(),
+                    'avg_fitness': train_df['fitness_avg'].mean(),
+                    'avg_distance': train_df['distance_avg'].mean(),
+                    'avg_stability': train_df['stability_avg'].mean(),
+                    'avg_energy': train_df['energy_avg'].mean(),
                     'final_time_limit': train_df.iloc[-1]['current_time_limit'],
                 })
 
@@ -430,7 +497,7 @@ class GeneticAlgorithm:
             summary_df.to_csv('data/training_summary.csv', index=False)
 
         except Exception as e:
-            print(f"⚠️  Erreur lors de la génération du résumé: {e}")
+            print(f"⚠️ Erreur lors de la génération du résumé: {e}")
 
     def print_stats(self):
         """Affiche les statistiques dans la console"""
@@ -442,45 +509,10 @@ class GeneticAlgorithm:
         record = self.best_individual.fitness if self.best_individual else 0.0
 
         print(f"[T{self.training_number}] Gen {self.generation}: "
-              f"Best={best.fitness:.2f}m, "
-              f"Avg={avg:.2f}m, "
-              f"Record={record:.2f}m, "
+              f"Best={best.fitness:.2f}, "
+              f"Avg={avg:.2f}, "
+              f"Record={record:.2f}, "
               f"Time={self.current_time_limit}frames")
-
-    def _generate_training_summary(self):
-        """Génère un fichier de résumé pour chaque training"""
-        if not os.path.exists(self.csv_file):
-            return
-
-        try:
-            df = pd.read_csv(self.csv_file)
-
-            # Créer un résumé par training
-            summary = []
-            for train_num in sorted(df['training_number'].unique()):
-                train_df = df[df['training_number'] == train_num]
-
-                summary.append({
-                    'training_number': train_num,
-                    'total_generations': len(train_df),
-                    'start_date': train_df.iloc[0]['timestamp'],
-                    'end_date': train_df.iloc[-1]['timestamp'],
-                    'first_best_fitness': train_df.iloc[0]['best_fitness'],
-                    'final_best_fitness': train_df.iloc[-1]['best_fitness'],
-                    'best_fitness_ever': train_df['absolute_best_fitness'].max(),
-                    'best_distance_ever': train_df['absolute_best_distance'].max(),
-                    'avg_fitness': train_df['avg_fitness'].mean(),
-                    'avg_distance': train_df['avg_distance'].mean(),
-                    'avg_stability': train_df['avg_stability'].mean(),
-                    'avg_energy': train_df['avg_energy'].mean(),
-                    'final_time_limit': train_df.iloc[-1]['current_time_limit'],
-                })
-
-            summary_df = pd.DataFrame(summary)
-            summary_df.to_csv('data/training_summary.csv', index=False)
-
-        except Exception as e:
-            print(f"⚠️  Erreur lors de la génération du résumé: {e}")
 
 
 class AIController:
@@ -529,7 +561,6 @@ class AIController:
         distance = current_x - self.start_position if self.start_position else 0
         stability = 1.0 if not is_fallen else 0.0
 
-        # Terminer si tombé OU si on atteint la limite de temps actuelle
         is_done = is_fallen or self.frame >= self.ga.current_time_limit
 
         if is_done:
