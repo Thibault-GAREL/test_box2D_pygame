@@ -129,13 +129,13 @@ def main():
     print("🦊 ANALYSE DES DONNÉES CSV")
 
     # Analyser les données d'entraînement
-    analyze_training_data('../old_data/training_data.csv')
+    analyze_training_data('../old_data/training1/training_data.csv')
 
     # Analyser les données individuelles
     analyze_individuals_data('individuals_data.csv')
 
     # Créer un résumé
-    export_summary('../old_data/training_data.csv', 'old_data/training_summary.csv')
+    export_summary('../old_data/training1/training_data.csv', 'old_data/training_summary.csv')
 
 
 if __name__ == "__main__":

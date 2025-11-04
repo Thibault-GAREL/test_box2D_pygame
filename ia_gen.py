@@ -77,7 +77,7 @@ class GeneticAlgorithm:
             return 1
 
         try:
-            df = pd.read_csv(self.csv_file)
+            df = pd.read_csv(self.csv_file, decimal='.')
             if 'training_number' in df.columns and len(df) > 0:
                 return int(df['training_number'].max()) + 1
             return 1
@@ -336,8 +336,8 @@ class GeneticAlgorithm:
             'stability_std': np.std(stabilities),
 
             # Énergie - statistiques complètes (best = minimum car moins c'est mieux)
-            'energy_best': np.min(energies),  # Meilleur = minimum d'énergie
-            'energy_worst': np.max(energies),  # Pire = maximum d'énergie
+            'energy_best': np.min(energies),
+            'energy_worst': np.max(energies),
             'energy_avg': np.mean(energies),
             'energy_median': np.median(energies),
             'energy_std': np.std(energies),
@@ -368,9 +368,9 @@ class GeneticAlgorithm:
         df = pd.DataFrame([data])
 
         if os.path.exists(self.csv_file):
-            df.to_csv(self.csv_file, mode='a', header=False, index=False)
+            df.to_csv(self.csv_file, mode='a', header=False, index=False, decimal=',', sep=';')
         else:
-            df.to_csv(self.csv_file, mode='w', header=True, index=False)
+            df.to_csv(self.csv_file, mode='w', header=True, index=False, decimal=',', sep=';')
 
     def save_individual_stats(self, individual_index: int):
         """Sauvegarde les statistiques d'un individu spécifique"""
@@ -411,9 +411,9 @@ class GeneticAlgorithm:
         df = pd.DataFrame([data])
 
         if os.path.exists(csv_file):
-            df.to_csv(csv_file, mode='a', header=False, index=False)
+            df.to_csv(csv_file, mode='a', header=False, index=False, decimal=',', sep=';')
         else:
-            df.to_csv(csv_file, mode='w', header=True, index=False)
+            df.to_csv(csv_file, mode='w', header=True, index=False, decimal=',', sep=';')
 
     def save(self, filename='data/fox_ai.pkl'):
         """Sauvegarde l'état de l'algorithme génétique"""
@@ -443,16 +443,11 @@ class GeneticAlgorithm:
         with open(filename, 'rb') as f:
             data = pickle.load(f)
 
-        saved_training_number = data.get('training_number', 1)
-
-        if saved_training_number != self.training_number:
-            print(f"   Nouvel entraînement détecté (Training #{self.training_number})")
-            return False
-
+        # ✅ Charger directement le training sauvegardé
         self.population = data['population']
         self.generation = data['generation']
         self.best_individual = data['best_individual']
-        self.training_number = saved_training_number
+        self.training_number = data.get('training_number', 1)
 
         params = data['parameters']
         self.population_size = params['population_size']
@@ -469,7 +464,7 @@ class GeneticAlgorithm:
             return
 
         try:
-            df = pd.read_csv(self.csv_file)
+            df = pd.read_csv(self.csv_file, decimal=',', sep=';')
 
             summary = []
             for train_num in sorted(df['training_number'].unique()):
@@ -494,7 +489,7 @@ class GeneticAlgorithm:
                 })
 
             summary_df = pd.DataFrame(summary)
-            summary_df.to_csv('data/training_summary.csv', index=False)
+            summary_df.to_csv('data/training_summary.csv', index=False, decimal=',', sep=';')
 
         except Exception as e:
             print(f"⚠️ Erreur lors de la génération du résumé: {e}")

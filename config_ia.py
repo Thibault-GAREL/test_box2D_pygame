@@ -32,7 +32,7 @@ TRAINING_CONFIG = {
     'save_every': 5,  # Sauvegarder tous les N générations
     'save_file': 'data/fox_ai.pkl',  # Fichier de sauvegarde
     'max_frames_per_individual': 500,  # Durée max d'évaluation
-    'speed_multiplier': 10 if not DISPLAY_ENABLED else 1,  # Vitesse en mode rapide
+    'speed_multiplier': 50 if not DISPLAY_ENABLED else 1,  # Vitesse en mode rapide
     'save_all_individuals': False,  # True = sauvegarder chaque individu dans individuals_data.csv
 
     # Continuer automatiquement vers le prochain training

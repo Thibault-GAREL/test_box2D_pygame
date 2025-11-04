@@ -92,7 +92,7 @@ def main():
 
     # Afficher le mode d'affichage
     if DISPLAY_ENABLED:
-        print("🖥️  Mode AFFICHAGE ACTIVÉ")
+        print("🖥️ Mode AFFICHAGE ACTIVÉ")
     else:
         print("⚡ Mode RAPIDE (sans affichage)")
 
@@ -148,7 +148,7 @@ def main():
                 elif event.key == pygame.K_F2:
                     display_active = not display_active
                     if display_active:
-                        print("🖥️  AFFICHAGE ACTIVÉ")
+                        print("🖥️ AFFICHAGE ACTIVÉ")
                     else:
                         print("⚡ AFFICHAGE DÉSACTIVÉ (mode rapide)")
                 # Sauvegarder manuellement avec S
@@ -290,9 +290,13 @@ def main():
                             if max_trainings is None or ga.training_number < max_trainings:
                                 print(f"\n🔄 Démarrage du Training #{ga.training_number + 1}...")
 
-                                # Réinitialiser pour un nouvel entraînement
-                                ga_config_complete = {**GA_CONFIG, 'fitness_config': FITNESS_CONFIG}
-                                ga = GeneticAlgorithm(**ga_config_complete)
+                                # ✅ NOUVEAU : Incrémenter le training et réinitialiser la génération
+                                # MAIS garder la population existante !
+                                ga.training_number += 1
+                                ga.generation = 0
+                                ga.generation_start_time = None
+
+                                # Recréer le contrôleur IA avec le même GA
                                 ai_controller = AIController(ga, save_all_individuals=TRAINING_CONFIG[
                                     'save_all_individuals'])
 
