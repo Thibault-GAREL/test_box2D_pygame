@@ -4,10 +4,10 @@
 # ============ OPTIONS PRINCIPALES ============
 
 # Mode de contrôle
-HUMAN_CONTROL = False  # True = contrôle humain, False = contrôle IA
+HUMAN_CONTROL = True  # True = contrôle humain, False = contrôle IA
 
 # Affichage
-DISPLAY_ENABLED = False  # True = afficher l'écran, False = mode rapide sans affichage
+DISPLAY_ENABLED = True  # True = afficher l'écran, False = mode rapide sans affichage
 
 # ============ PARAMÈTRES DE L'ALGORITHME GÉNÉTIQUE ============
 
