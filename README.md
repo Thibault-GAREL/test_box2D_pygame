@@ -1,4 +1,4 @@
-# Box2D & Pygame
+# Quadruped AI
 
 ![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)
 ![Box2D](https://img.shields.io/badge/Box-2.3.10-red.svg)
@@ -13,21 +13,31 @@
 
 
 ## 📝 Project Description 
-This project is a try to understand how to use box2D with pygame 🦊🦊🦊
+This project is a try to understand how to use box2D with pygame. 🦊🦊🦊
 
+To do so, I construct an AI able to control a quadruped, a fox with real physics, muscles, a world and a pretty low-poly design.
 
+To learn data visualisation, I used Power BI to analyse in details !
 
 ---
 
-## ⚙️ Features
-  
+## ⚙️ Features  
 
+
+Constructed : 
+- Real physique with muscles, interation with **box2D** library.
+- A good-looking with pygame🦊.
+- An algorithm to select the best choreography.
+
+Project for the futur :
+- A genetic algorithm
+- PPO algorithm
 
 ## Example Outputs
 
 We can control the quadruped, the view (We can see clearly the parallax here) :
 <p align="center">
-  <img src="img/Gif-human-controled.gif" alt="Example Outputs : Human controled">
+  <img src="img/Gif-human-controled.gif" alt="Example Outputs : Human controlled">
 </p>
 
 Here is the algorithm that select just the best choreography :
@@ -42,12 +52,24 @@ I'm currently working on other algorithm such as genetic neural network, PPO...
 ## ⚙️ How it works
 
 We need to reduce the angular speed and make a score for the power use
-Make a camera systeme with paralaxe images
+Make a camera system with parallaxe images
 
 Add some commentary for each .py on the top for a better understanding of my code for AI (and me 🫠)
 
 ## 🗺️ Schema
 
+![Overview](powerBI/img.png)
+
+<details>
+<summary>📸 See more data analyse</summary>
+
+![Capture 1](powerBI/img_1.png)
+![Capture 2](powerBI/img_2.png)
+![Capture 3](powerBI/img_3.png)
+
+## Adding more picture
+
+</details>
 
 ---
 
