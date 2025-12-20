@@ -7,8 +7,14 @@
 ![License](https://img.shields.io/badge/license-MIT-green.svg)  
 ![Contributions](https://img.shields.io/badge/contributions-welcome-orange.svg)  
 
+<p align="center">
+  <img src="img/logo.png" alt="logo">
+</p>
+
+
 ## 📝 Project Description 
 This project is a try to understand how to use box2D with pygame 🦊🦊🦊
+
 
 
 ---
@@ -19,13 +25,22 @@ This project is a try to understand how to use box2D with pygame 🦊🦊🦊
 
 ## Example Outputs
 
+We can control the quadruped, the view (We can see clearly the parallax here) :
+<p align="center">
+  <img src="img/Gif-human-controled.gif" alt="Example Outputs : Human controled">
+</p>
 
+Here is the algorithm that select just the best choreography :
+<p align="center">
+  <img src="img/Gif-select-choregraphy.gif" alt="Example Outputs : Select best choreography">
+</p>
+
+I'm currently working on other algorithm such as genetic neural network, PPO...
 
 ---
 
 ## ⚙️ How it works
 
-Make a better display
 We need to reduce the angular speed and make a score for the power use
 Make a camera systeme with paralaxe images
 

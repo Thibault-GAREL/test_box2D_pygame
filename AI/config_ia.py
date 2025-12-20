@@ -1,0 +1,26 @@
+# config_ia.py
+"""Configuration pour l'entraînement des IA"""
+
+# ============ OPTIONS PRINCIPALES ============
+
+# Mode de contrôle
+HUMAN_CONTROL = False  # True = contrôle humain, False = contrôle IA
+
+# Affichage
+DISPLAY_ENABLED = True  # True = afficher l'écran, False = mode rapide sans affichage
+
+
+CONFIG = {
+    'speed_multiplier': 50 if not DISPLAY_ENABLED else 1,  # Vitesse en mode rapide
+}
+
+# ========== SÉLECTION DE L'IA ==========
+IA_TYPE = "choreography"  # Change ici pour choisir l'IA !
+
+"""
+Tu peux maintenant changer facilement d'IA en modifiant juste cette variable :
+- `"choreography"` → Algorithme génétique
+- `"ppo"` → PPO (quand tu l'implémenteras)
+- `"dqn"` → DQN (quand tu l'implémenteras)
+- `"neat"` → NEAT (quand tu l'implémenteras)
+"""

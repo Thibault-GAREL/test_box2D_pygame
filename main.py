@@ -1,22 +1,23 @@
-import random
-import math
-
 import pygame
 # Import depuis physics.py
-from physics import PhysicsWorld, Quadruped
+from core_engine.physics import PhysicsWorld, Quadruped
 # Import depuis display.py
-from display import Display
+from core_engine.display import Display
 # Import du système d'overlay AMÉLIORÉ
-from overlay import VisualOverlay
+from core_engine.overlay import VisualOverlay
 # Import du système de parallaxe
-from parallax import ParallaxManager
+from core_engine.parallax import ParallaxManager
 
 # ===== IMPORTS POUR L'IA =====
-from ia_gen import GeneticAlgorithm, AIController
-from config_ia import HUMAN_CONTROL, DISPLAY_ENABLED, GA_CONFIG, TRAINING_CONFIG, STATS_CONFIG, FITNESS_CONFIG
+from AI.ia_chore import IAChoreography
+import AI.config_ia as config_ia
+import AI.config_chore as config_chore
 
 
 def main():
+    HUMAN_CONTROL = config_ia.HUMAN_CONTROL  # Pour garder la compatibilité
+    DISPLAY_ENABLED = config_ia.DISPLAY_ENABLED  # Pour garder la compatibilité
+
     # Initialiser les systèmes
     physics_world = PhysicsWorld(gravity=(0, -10))
 
@@ -30,6 +31,9 @@ def main():
 
     # Initialiser le système de parallaxe
     parallax = ParallaxManager()
+
+    episode_time = 0.0
+    episode_start_x = quadruped.body.body.position.x
 
     # Ajouter des couches d'arrière-plan
     parallax.add_layer("img/cloud.png", depth=0.07, x_position=-1, y_position=6, repeat=True, repeat_spacing=(9, 12),
@@ -104,32 +108,32 @@ def main():
     # ===== INITIALISATION DE L'IA =====
     if not HUMAN_CONTROL:
         print("🤖 Mode IA ACTIVÉ")
-
-        # Créer la configuration complète avec FITNESS_CONFIG
-        ga_config_complete = {**GA_CONFIG, 'fitness_config': FITNESS_CONFIG}
-        ga = GeneticAlgorithm(**ga_config_complete)
-
-        loaded = ga.load(TRAINING_CONFIG['save_file'])
-        if loaded:
-            print(f"   IA chargée: Training #{ga.training_number}, Génération {ga.generation}")
-        else:
-            print(f"   Nouvel entraînement: Training #{ga.training_number}")
-
-        ai_controller = AIController(ga, save_all_individuals=TRAINING_CONFIG['save_all_individuals'])
-
-        # Initialiser le premier individu
-        start_x = quadruped.body.body.position.x
-        ai_controller.reset_for_individual(0, start_x)
+        ia = IAChoreography(config_chore)
+        # Essayer de charger une sauvegarde existante
+        try:
+            ia.load(config_chore.TRAINING_CONFIG['save_file'])
+            print(f"   IA chargée: Génération {ia.generation}")
+        except FileNotFoundError:
+            print("   Nouvelle IA créée")
     else:
         print("👤 Mode CONTRÔLE HUMAIN")
 
     # Paramètres de simulation
     TARGET_FPS = 60
-    TIME_STEP = 1.0 / TARGET_FPS
+    BASE_TIME_STEP = 1.0 / TARGET_FPS
+
+    if display_active:
+        TIME_STEP = BASE_TIME_STEP
+    else:
+        TIME_STEP = BASE_TIME_STEP * config_ia.CONFIG['speed_multiplier']
 
     # Boucle principale
     running = True
+    frame_count = 0
     while running:
+        frame_count += 1
+        episode_time += TIME_STEP
+
         # Gestion des événements Pygame
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -147,14 +151,31 @@ def main():
                 # Basculer l'affichage avec F2
                 elif event.key == pygame.K_F2:
                     display_active = not display_active
+
+                    # ✅ AJOUT : Recalculer TIME_STEP
                     if display_active:
+                        TIME_STEP = BASE_TIME_STEP
                         print("🖥️ AFFICHAGE ACTIVÉ")
                     else:
-                        print("⚡ AFFICHAGE DÉSACTIVÉ (mode rapide)")
+                        TIME_STEP = BASE_TIME_STEP * config_ia.CONFIG['speed_multiplier']
+                        print(f"⚡ AFFICHAGE DÉSACTIVÉ (mode rapide x{config_ia.CONFIG['speed_multiplier']})")
                 # Sauvegarder manuellement avec S
                 elif event.key == pygame.K_s and not HUMAN_CONTROL:
-                    ga.save(TRAINING_CONFIG['save_file'])
+                    ia.save(config_chore.TRAINING_CONFIG['save_file'])
                     print(f"💾 Sauvegarde manuelle effectuée")
+                elif event.key == pygame.K_PLUS or event.key == pygame.K_KP_PLUS or event.key == pygame.K_EQUALS:
+                    # Augmenter la vitesse
+                    config_ia.CONFIG['speed_multiplier'] = min(config_ia.CONFIG['speed_multiplier'] + 5, 100.0)
+                    if not display_active:
+                        TIME_STEP = BASE_TIME_STEP * config_ia.CONFIG['speed_multiplier']
+                    print(f"⚡ Vitesse: x{config_ia.CONFIG['speed_multiplier']}")
+
+                elif event.key == pygame.K_MINUS or event.key == pygame.K_KP_MINUS:
+                    # Diminuer la vitesse
+                    config_ia.CONFIG['speed_multiplier'] = max(config_ia.CONFIG['speed_multiplier'] - 5, 1.0)
+                    if not display_active:
+                        TIME_STEP = BASE_TIME_STEP * config_ia.CONFIG['speed_multiplier']
+                    print(f"🐌 Vitesse: x{config_ia.CONFIG['speed_multiplier']}")
 
         # Gestion des touches (contrôle manuel)
         keys = pygame.key.get_pressed()
@@ -218,15 +239,31 @@ def main():
                 quadruped.control_muscles(7, 'extend')
         else:
             # ===== MODE IA: Contrôle automatique =====
-            ai_action = ai_controller.get_action_keys()
+            # Récupérer le temps écoulé (tu dois ajouter un compteur)
+            dog_state = {
+                'position': (quadruped.body.body.position.x, quadruped.body.body.position.y),
+                'velocity': (quadruped.body.body.linearVelocity.x, quadruped.body.body.linearVelocity.y),
+                'angle': quadruped.body.body.angle
+            }
 
-            # L'IA retourne {'muscle': 0-7 ou None, 'action': 'contract'/'extend'/'relax'}
-            if ai_action['muscle'] is not None:
-                quadruped.control_muscles(ai_action['muscle'], ai_action['action'])
+            # Récupérer les activations musculaires
+            action = ia.get_action(episode_time, dog_state)
+
+            muscle_command = ia.action_to_muscle_control(action)
+
+            if muscle_command['muscle'] is not None:
+                quadruped.control_muscles(muscle_command['muscle'], muscle_command['action'])
+
+            # Appliquer les activations (0.0-1.0) aux muscles
+            action = ia.get_action(episode_time, dog_state)  # → retourne un int (0-16)
+            muscle_command = ia.action_to_muscle_control(action)  # → convertit en {'muscle': X, 'action': 'contract'}
+            if muscle_command['muscle'] is not None:
+                quadruped.control_muscles(muscle_command['muscle'], muscle_command['action'])
 
         if quadruped.is_upside_down():
             if display_active:
                 display.draw_text("RETOURNÉ!", (display.width // 2 - 50, 50), (255, 0, 0))
+                print("Retourné !!")
 
         # Mettre à jour la physique
         quadruped.update()
@@ -234,87 +271,44 @@ def main():
 
         # ===== ÉVALUATION DE L'IA =====
         if not HUMAN_CONTROL:
-            # Récupérer les informations nécessaires
             current_x = quadruped.body.body.position.x
             is_fallen = quadruped.is_upside_down()
 
-            # Évaluer l'individu actuel
-            if ai_controller.evaluate_individual(current_x, is_fallen):
-                # Cet individu a terminé son évaluation
-                if ai_controller.next_individual():
-                    # Passer à l'individu suivant
-                    # Réinitialiser seulement la physique
-                    del physics_world
-                    del quadruped
+            max_time_frames = ia.current_max_time
 
-                    physics_world = PhysicsWorld(gravity=(0, -10))
-                    quadruped = Quadruped(physics_world, x=6, y=3)
+            if is_fallen or frame_count >= max_time_frames:
+                distance = current_x - episode_start_x
+                ia.on_episode_end(distance, frame_count, dog_state)
 
-                    start_x = quadruped.body.body.position.x
-                    ai_controller.reset_for_individual(ai_controller.current_individual_index, start_x)
-                else:
-                    # Tous les individus ont été évalués, génération terminée
-                    if STATS_CONFIG['show_progress'] and (ga.generation % STATS_CONFIG['print_every'] == 0):
-                        ga.print_stats()
+                # Vérifier si on doit reset
+                if ia.should_reset_simulation():
+                    # Log de génération
+                    ia.on_generation_end()
 
-                    # Sauvegarde périodique
-                    if (ga.generation + 1) % TRAINING_CONFIG['save_every'] == 0:
-                        ga.save(TRAINING_CONFIG['save_file'])
+                    if ia.generation >= config_chore.TRAINING_CONFIG['max_generations']:
+                        print(f"\n✅ Training terminé: {ia.generation} générations")
+                        ia.save(config_chore.TRAINING_CONFIG['save_file'])
 
-                    # Évoluer vers la nouvelle génération
-                    ga.evolve()
-                    ai_controller.current_individual_index = 0
-
-                    # Réinitialiser pour le premier individu de la nouvelle génération
-                    del physics_world
-                    del quadruped
-
-                    physics_world = PhysicsWorld(gravity=(0, -10))
-                    quadruped = Quadruped(physics_world, x=6, y=3)
-
-                    start_x = quadruped.body.body.position.x
-                    ai_controller.reset_for_individual(0, start_x)
-
-                    # Vérifier si on a atteint le nombre max de générations
-                    if ga.generation >= TRAINING_CONFIG['max_generations']:
-                        print(f"\n✅ Training #{ga.training_number} terminé: {ga.generation} générations")
-                        ga.save(TRAINING_CONFIG['save_file'])
-
-                        # Générer le résumé final pour ce training
-                        ga._generate_training_summary()
-
-                        # Vérifier si on continue automatiquement
-                        if TRAINING_CONFIG['auto_continue']:
-                            # Vérifier s'il y a une limite de trainings
-                            max_trainings = TRAINING_CONFIG.get('max_trainings', None)
-                            if max_trainings is None or ga.training_number < max_trainings:
-                                print(f"\n🔄 Démarrage du Training #{ga.training_number + 1}...")
-
-                                # ✅ NOUVEAU : Incrémenter le training et réinitialiser la génération
-                                # MAIS garder la population existante !
-                                ga.training_number += 1
-                                ga.generation = 0
-                                ga.generation_start_time = None
-
-                                # Recréer le contrôleur IA avec le même GA
-                                ai_controller = AIController(ga, save_all_individuals=TRAINING_CONFIG[
-                                    'save_all_individuals'])
-
-                                # Réinitialiser la physique
-                                del physics_world
-                                del quadruped
-
-                                physics_world = PhysicsWorld(gravity=(0, -10))
-                                quadruped = Quadruped(physics_world, x=6, y=3)
-
-                                start_x = quadruped.body.body.position.x
-                                ai_controller.reset_for_individual(0, start_x)
-                            else:
-                                print(f"\n🏁 Nombre maximum de trainings atteint ({max_trainings})")
-                                running = False
+                        if config_chore.TRAINING_CONFIG['auto_continue']:
+                            print(f"\n🔄 Démarrage du prochain training...")
+                            ia.generation = 0
+                            # Continue automatiquement (ne fait rien, la boucle continue)
                         else:
                             print(f"\n🛑 Arrêt (auto_continue désactivé)")
                             running = False
+
+                    # Reset physique
+                    del physics_world
+                    del quadruped
+                    physics_world = PhysicsWorld(gravity=(0, -10))
+                    quadruped = Quadruped(physics_world, x=6, y=3)
+
+                    episode_time = 0.0
+                    episode_start_x = quadruped.body.body.position.x
+                    frame_count = 0
+
+                    ia.reset_episode()
+
 
         # ===== MISE À JOUR CAMÉRA =====
         # En mode suivi automatique, la caméra suit le corps du quadrupède
@@ -346,17 +340,13 @@ def main():
             display.draw_text("P: Afficher angles des os", (10, display.height - 105), (200, 200, 200))
 
             # Instruction pour basculer l'affichage
-            display.draw_text("F2: Basculer affichage", (10, display.height - 80), (200, 200, 200))
+            display.draw_text("F2: Basculer affichage", (10, display.height - 135), (200, 200, 200))
 
             # Afficher les infos de l'IA (optionnel)
             if not HUMAN_CONTROL:
                 font = pygame.font.Font(None, 24)
-                train_num = ga.training_number
-                gen = ga.generation
-                ind = ai_controller.current_individual_index
-                total = ga.population_size
-
-                text = f"Training {train_num} | Gen {gen} | Individu {ind + 1}/{total}"
+                stats = ia.get_stats()
+                text = f"Gen {stats['generation']} | Individu {stats['current_individual'] + 1}/{config_chore.GA_CONFIG['population_size']} | Best {stats['best_distance']:.2f}m"
 
                 surface = font.render(text, True, (255, 255, 255))
                 bg_surf = pygame.Surface((surface.get_width() + 10, surface.get_height() + 5))
@@ -367,17 +357,17 @@ def main():
 
             display.update()
 
-        # Toujours gérer le FPS (même sans affichage)
         if display_active:
             display.tick(TARGET_FPS)
         else:
-            display.tick(TARGET_FPS * TRAINING_CONFIG['speed_multiplier'])
+            # ✅ En mode rapide, on ne limite pas le FPS
+            # Le TIME_STEP fait déjà tout le travail
+            display.tick(10000)  # Limite très haute = pas de limite
 
     # Sauvegarde finale
     if not HUMAN_CONTROL:
-        ga.save(TRAINING_CONFIG['save_file'])
+        ia.save(config_chore.TRAINING_CONFIG['save_file'])
         print(f"\n💾 Sauvegarde finale effectuée")
-        print(f"📊 Données CSV: {ga.csv_file}")
 
     # Fermer proprement Pygame
     display.quit()
