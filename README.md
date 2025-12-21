@@ -19,10 +19,11 @@ To do so, I construct an AI able to control a quadruped, a fox with real physics
 
 To learn data visualisation, I used Power BI to analyse in details !
 
+🚨The project is not **finish** !🚨
+
 ---
 
 ## ⚙️ Features  
-
 
 Constructed : 
 - Real physique with muscles, interation with **box2D** library.
@@ -32,10 +33,12 @@ Constructed :
 Project for the futur :
 - A genetic algorithm
 - PPO algorithm
+- Add some commentary for each .py on the top for a better understanding of my code for AI (and me 🫠)
+
 
 ## Example Outputs
 
-We can control the quadruped, the view (We can see clearly the parallax here) :
+We can control the quadruped, the view (We can see clearly the parallax and the different mode - textured, skeleton and overlay) :
 <p align="center">
   <img src="img/Gif-human-controled.gif" alt="Example Outputs : Human controlled">
 </p>
@@ -51,10 +54,9 @@ I'm currently working on other algorithm such as genetic neural network, PPO...
 
 ## ⚙️ How it works
 
-We need to reduce the angular speed and make a score for the power use
-Make a camera system with parallaxe images
+Here it is juste a selection of the best choreography and adjusting time in consequence.
 
-Add some commentary for each .py on the top for a better understanding of my code for AI (and me 🫠)
+
 
 ## 🗺️ Schema
 
@@ -66,8 +68,6 @@ Add some commentary for each .py on the top for a better understanding of my cod
 ![Capture 1](powerBI/img_1.png)
 ![Capture 2](powerBI/img_2.png)
 ![Capture 3](powerBI/img_3.png)
-
-## Adding more picture
 
 </details>
 
