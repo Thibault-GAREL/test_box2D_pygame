@@ -88,7 +88,7 @@ Here it is juste a selection of the best choreography and adjusting time in cons
 Clone the repository and install dependencies:  
 ```bash
 git clone https://github.com/Thibault-GAREL/test_box2D_pygame.git
-cd test_box2D_pygame
+cd Quadruped-AI
 
 python -m venv .venv #if you don't have a virtual environnement
 source .venv/bin/activate   # Linux / macOS
