@@ -10,7 +10,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 from typing import List, Dict, Any
-from AI.ia_base import IABase
+from src.models.ia_base import IABase
 
 
 class Individual:

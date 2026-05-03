@@ -19,9 +19,9 @@ clock = pygame.time.Clock()
 
 # Chargement de l'image
 try:
-    original_image = pygame.image.load("../img/fox_texture_body.png")
+    original_image = pygame.image.load("../assets/fox_texture_body.png")
 except:
-    print("Erreur: Impossible de charger l'image '../img/fox_texture_body.png'")
+    print("Erreur: Impossible de charger l'image '../assets/fox_texture_body.png'")
     pygame.quit()
     sys.exit()
 

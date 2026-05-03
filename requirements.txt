@@ -1,0 +1,10 @@
+# Core simulation
+pygame>=2.6.0
+box2d-py>=2.3.5
+
+# IA neuroevolution + tracking
+numpy>=1.26.0
+pandas>=2.0.0
+mlflow>=3.0.0
+pydantic>=2.0.0
+pydantic-settings>=2.0.0

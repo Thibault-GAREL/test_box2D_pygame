@@ -8,7 +8,7 @@
 ![Contributions](https://img.shields.io/badge/contributions-welcome-orange.svg)  
 
 <p align="center">
-  <img src="img/logo.png" alt="logo">
+  <img src="assets/logo.png" alt="logo">
 </p>
 
 
@@ -40,12 +40,12 @@ Project for the futur :
 
 We can control the quadruped, the view (We can see clearly the parallax and the different mode - textured, skeleton and overlay) :
 <p align="center">
-  <img src="img/Gif-human-controled.gif" alt="Example Outputs : Human controlled">
+  <img src="assets/Gif-human-controled.gif" alt="Example Outputs : Human controlled">
 </p>
 
 Here is the algorithm that select just the best choreography :
 <p align="center">
-  <img src="img/Gif-select-choregraphy.gif" alt="Example Outputs : Select best choreography">
+  <img src="assets/Gif-select-choregraphy.gif" alt="Example Outputs : Select best choreography">
 </p>
 
 I'm currently working on other algorithm such as genetic neural network, PPO...
@@ -60,14 +60,14 @@ Here it is juste a selection of the best choreography and adjusting time in cons
 
 ## 🗺️ Schema
 
-![Overview](powerBI/img.png)
+![Overview](old_version/powerBI/img.png)
 
 <details>
 <summary>📸 See more data analyse</summary>
 
-![Capture 1](powerBI/img_1.png)
-![Capture 2](powerBI/img_2.png)
-![Capture 3](powerBI/img_3.png)
+![Capture 1](old_version/powerBI/img_1.png)
+![Capture 2](old_version/powerBI/img_2.png)
+![Capture 3](old_version/powerBI/img_3.png)
 
 </details>
 

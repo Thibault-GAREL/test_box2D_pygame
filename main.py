@@ -1,23 +1,19 @@
 import pygame
-# Import depuis physics.py
-from core_engine.physics import PhysicsWorld, Quadruped
-# Import depuis display.py
-from core_engine.display import Display
-# Import du système d'overlay AMÉLIORÉ
-from core_engine.overlay import VisualOverlay
-# Import du système de parallaxe
-from core_engine.parallax import ParallaxManager
+from src.core_engine.physics import PhysicsWorld, Quadruped
+from src.core_engine.display import Display
+from src.core_engine.overlay import VisualOverlay
+from src.core_engine.parallax import ParallaxManager
 
 # ===== IMPORTS POUR L'IA =====
-import AI.config_ia as config_ia
+import src.config as config_ia
 
-# Dispatch dynamique selon IA_TYPE (defini dans AI/config_ia.py)
+# Dispatch dynamique selon IA_TYPE (defini dans src/config.py)
 if config_ia.IA_TYPE == "choreography":
-    from AI.ia_chore import IAChoreography as IAClass
-    import AI.config_chore as ia_config
+    from src.models.ia_chore import IAChoreography as IAClass
+    import src.models.config_chore as ia_config
 elif config_ia.IA_TYPE == "neuro_ga":
-    from AI.ia_gen import IAGenetic as IAClass
-    import AI.config_gen as ia_config
+    from src.models.ia_gen import IAGenetic as IAClass
+    import src.models.config_gen as ia_config
 else:
     raise ValueError(
         f"IA_TYPE inconnu : {config_ia.IA_TYPE!r}. "
@@ -38,7 +34,7 @@ def main():
     quadruped = Quadruped(physics_world, x=6, y=3)
 
     # Initialiser le système d'overlay visuel avec l'image du chat
-    overlay = VisualOverlay(display, parts_folder="img", global_scale=0.3)
+    overlay = VisualOverlay(display, parts_folder="assets", global_scale=0.3)
 
     # Initialiser le système de parallaxe
     parallax = ParallaxManager()
@@ -47,53 +43,53 @@ def main():
     episode_start_x = quadruped.body.body.position.x
 
     # Ajouter des couches d'arrière-plan
-    parallax.add_layer("img/cloud.png", depth=0.07, x_position=-1, y_position=6, repeat=True, repeat_spacing=(9, 12),
+    parallax.add_layer("assets/cloud.png", depth=0.07, x_position=-1, y_position=6, repeat=True, repeat_spacing=(9, 12),
                        scale=0.4)
-    parallax.add_layer("img/cloud2.png", depth=0.05, x_position=5, y_position=5, repeat=True, repeat_spacing=(5, 7),
+    parallax.add_layer("assets/cloud2.png", depth=0.05, x_position=5, y_position=5, repeat=True, repeat_spacing=(5, 7),
                        scale=0.3)
 
-    parallax.add_layer("img/mountain2.png", depth=0.1, x_position=0, y_position=0, repeat=True, repeat_spacing=(9, 12),
+    parallax.add_layer("assets/mountain2.png", depth=0.1, x_position=0, y_position=0, repeat=True, repeat_spacing=(9, 12),
                        scale=1.3)
 
-    parallax.add_layer("img/hill1.png", depth=0.15, x_position=-4, y_position=-0.16, repeat=True,
+    parallax.add_layer("assets/hill1.png", depth=0.15, x_position=-4, y_position=-0.16, repeat=True,
                        repeat_spacing=(6, 10), scale=1.4)
-    parallax.add_layer("img/hill2.png", depth=0.14, x_position=15, y_position=-0.16, repeat=True,
+    parallax.add_layer("assets/hill2.png", depth=0.14, x_position=15, y_position=-0.16, repeat=True,
                        repeat_spacing=(5, 10))
-    parallax.add_layer("img/hill3.png", depth=0.19, x_position=-15, y_position=-0.16, repeat=True,
+    parallax.add_layer("assets/hill3.png", depth=0.19, x_position=-15, y_position=-0.16, repeat=True,
                        repeat_spacing=(4, 8))
-    parallax.add_layer("img/hill4.png", depth=0.23, x_position=8, y_position=-0.16, repeat=True, repeat_spacing=(6, 8))
-    parallax.add_layer("img/hill1.png", depth=0.15, x_position=-6, y_position=-0.16, repeat=True,
+    parallax.add_layer("assets/hill4.png", depth=0.23, x_position=8, y_position=-0.16, repeat=True, repeat_spacing=(6, 8))
+    parallax.add_layer("assets/hill1.png", depth=0.15, x_position=-6, y_position=-0.16, repeat=True,
                        repeat_spacing=(6, 10))
-    parallax.add_layer("img/hill2.png", depth=0.14, x_position=20, y_position=-0.16, repeat=True,
+    parallax.add_layer("assets/hill2.png", depth=0.14, x_position=20, y_position=-0.16, repeat=True,
                        repeat_spacing=(5, 10))
-    parallax.add_layer("img/hill3.png", depth=0.19, x_position=-19, y_position=-0.16, repeat=True,
+    parallax.add_layer("assets/hill3.png", depth=0.19, x_position=-19, y_position=-0.16, repeat=True,
                        repeat_spacing=(5, 6))
-    parallax.add_layer("img/hill4.png", depth=0.23, x_position=14, y_position=-0.16, repeat=True, repeat_spacing=(6, 8))
+    parallax.add_layer("assets/hill4.png", depth=0.23, x_position=14, y_position=-0.16, repeat=True, repeat_spacing=(6, 8))
 
-    parallax.add_layer("img/tree3.png", depth=0.7, x_position=0, y_position=0, repeat=True, repeat_spacing=(4, 10))
-    parallax.add_layer("img/tree3.png", depth=0.7, x_position=3, y_position=0, repeat=True, repeat_spacing=(4, 10),
+    parallax.add_layer("assets/tree3.png", depth=0.7, x_position=0, y_position=0, repeat=True, repeat_spacing=(4, 10))
+    parallax.add_layer("assets/tree3.png", depth=0.7, x_position=3, y_position=0, repeat=True, repeat_spacing=(4, 10),
                        scale=1.1)
 
-    parallax.add_layer("img/tree4.png", depth=0.6, x_position=-2, y_position=0, repeat=True, repeat_spacing=(4, 10),
+    parallax.add_layer("assets/tree4.png", depth=0.6, x_position=-2, y_position=0, repeat=True, repeat_spacing=(4, 10),
                        scale=0.9)
-    parallax.add_layer("img/tree5.png", depth=0.5, x_position=-6, y_position=0, repeat=True, repeat_spacing=(4, 10))
+    parallax.add_layer("assets/tree5.png", depth=0.5, x_position=-6, y_position=0, repeat=True, repeat_spacing=(4, 10))
 
-    parallax.add_layer("img/bush.png", depth=0.8, x_position=-2, y_position=0.35, repeat=True, repeat_spacing=(4, 10),
+    parallax.add_layer("assets/bush.png", depth=0.8, x_position=-2, y_position=0.35, repeat=True, repeat_spacing=(4, 10),
                        scale=0.25)
-    parallax.add_layer("img/bush2.png", depth=0.83, x_position=-5, y_position=0.35, repeat=True, repeat_spacing=(4, 10),
+    parallax.add_layer("assets/bush2.png", depth=0.83, x_position=-5, y_position=0.35, repeat=True, repeat_spacing=(4, 10),
                        scale=0.15)
-    parallax.add_layer("img/bush3.png", depth=0.84, x_position=-7, y_position=0.34, repeat=True, repeat_spacing=(4, 10),
+    parallax.add_layer("assets/bush3.png", depth=0.84, x_position=-7, y_position=0.34, repeat=True, repeat_spacing=(4, 10),
                        scale=0.2)
-    parallax.add_layer("img/bush4.png", depth=0.87, x_position=-9, y_position=0.33, repeat=True, repeat_spacing=(4, 10),
+    parallax.add_layer("assets/bush4.png", depth=0.87, x_position=-9, y_position=0.33, repeat=True, repeat_spacing=(4, 10),
                        scale=0.1)
 
-    parallax.add_layer("img/bush.png", depth=0.92, x_position=-2, y_position=0.2, repeat=True, repeat_spacing=(4, 6),
+    parallax.add_layer("assets/bush.png", depth=0.92, x_position=-2, y_position=0.2, repeat=True, repeat_spacing=(4, 6),
                        scale=0.4)
-    parallax.add_layer("img/bush2.png", depth=0.93, x_position=-5, y_position=0.15, repeat=True, repeat_spacing=(4, 7),
+    parallax.add_layer("assets/bush2.png", depth=0.93, x_position=-5, y_position=0.15, repeat=True, repeat_spacing=(4, 7),
                        scale=0.45)
-    parallax.add_layer("img/bush3.png", depth=0.97, x_position=-7, y_position=0.1, repeat=True, repeat_spacing=(3, 8),
+    parallax.add_layer("assets/bush3.png", depth=0.97, x_position=-7, y_position=0.1, repeat=True, repeat_spacing=(3, 8),
                        scale=0.2)
-    parallax.add_layer("img/bush4.png", depth=0.99, x_position=-9, y_position=0.1, repeat=True, repeat_spacing=(2, 9),
+    parallax.add_layer("assets/bush4.png", depth=0.99, x_position=-9, y_position=0.1, repeat=True, repeat_spacing=(2, 9),
                        scale=0.3)
 
     print("💡 Pour ajouter des arrière-plans, décommentez les lignes add_layer() dans main.py")

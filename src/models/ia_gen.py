@@ -31,7 +31,7 @@ import mlflow
 import numpy as np
 import pandas as pd
 
-from AI.ia_base import IABase
+from src.models.ia_base import IABase
 
 
 def _seed_everything(seed: int) -> None:

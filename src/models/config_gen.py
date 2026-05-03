@@ -5,7 +5,7 @@ Le genome = vecteur des poids et biais du MLP.
 Le reseau prend l'etat du quadrupede en entree et sort 8 activations musculaires.
 
 Usage:
-    import AI.config_gen as cfg
+    import src.models.config_gen as cfg
     print(cfg.SEED)                       # 42
     print(cfg.GA_CONFIG['population_size'])  # 40
 
@@ -14,7 +14,7 @@ Les valeurs peuvent etre surchargees via variables d'environnement
 """
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field
-from AI.config_ia import DISPLAY_ENABLED
+from src.config import DISPLAY_ENABLED
 
 
 class NeuroGASettings(BaseSettings):
@@ -59,15 +59,15 @@ class NeuroGASettings(BaseSettings):
 
     # ----- MLflow -----
     # SQLite recommande par le skill ai-training (le file store est deprecated).
-    MLFLOW_TRACKING_URI: str = "sqlite:///mlflow.db"
+    MLFLOW_TRACKING_URI: str = "sqlite:///outputs/logs/mlflow.db"
     MLFLOW_EXPERIMENT_NAME: str = "quadruped-neuro-ga"
     MODEL_NAME: str = "neuro-ga"
 
-    # ----- Chemins -----
-    MODELS_DIR: str = "models"
-    RESULTS_DIR: str = "results"
-    LEGACY_SAVE_FILE: str = "data/fox_ai_neuro.pkl"  # checkpoint compat retro
-    LEGACY_CSV_FILE: str = "data/training_data_neuro.csv"
+    # ----- Chemins (conformes au skill thibault-ia-init) -----
+    MODELS_DIR: str = "outputs/models"
+    RESULTS_DIR: str = "outputs/results"
+    LEGACY_SAVE_FILE: str = "outputs/models/fox_ai_neuro.pkl"  # checkpoint compat retro
+    LEGACY_CSV_FILE: str = "outputs/results/training_data_neuro.csv"
 
 
 # Singleton charge une seule fois a l'import (lit aussi les variables d'env).

@@ -1,6 +1,6 @@
-# config_ia.py
-"""Configuration pour l'entraînement des IA"""
-from AI.config_ia import DISPLAY_ENABLED
+# config_chore.py
+"""Configuration pour l'entraînement des IA chorégraphiques"""
+from src.config import DISPLAY_ENABLED
 
 # ============ PARAMÈTRES DE L'ALGORITHME CHOROGRAPHIQUE ============
 
@@ -10,7 +10,7 @@ GA_CONFIG = {
     'mutation_rate': 0.1,  # Taux de mutation (0.0 à 1.0)
     'crossover_rate': 0.7,  # Taux de croisement (0.0 à 1.0)
     'elite_size': 5,  # Nombre d'élites conservés
-    'csv_file': '../data/training_data.csv',  # Fichier CSV pour les données
+    'csv_file': 'outputs/results/training_data.csv',
 
     # Temps adaptatif
     'adaptive_time': True,  # True = le temps augmente avec les performances
@@ -23,8 +23,8 @@ GA_CONFIG = {
 TRAINING_CONFIG = {
     'max_generations': 100,  # Nombre maximum de générations par training
     'save_every': 5,  # Sauvegarder tous les N générations
-    'save_file': '../data/fox_ai.pkl',  # Fichier de sauvegarde
-    'csv_file': '../data/training_data.csv',
+    'save_file': 'outputs/models/fox_ai_chore.pkl',
+    'csv_file': 'outputs/results/training_data.csv',
     'max_frames_per_individual': 500,  # Durée max d'évaluation
     'speed_multiplier': 50 if not DISPLAY_ENABLED else 1,  # Vitesse en mode rapide
     'save_all_individuals': False,  # True = sauvegarder chaque individu dans individuals_data.csv
