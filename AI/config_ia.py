@@ -7,7 +7,7 @@
 HUMAN_CONTROL = False  # True = contrôle humain, False = contrôle IA
 
 # Affichage
-DISPLAY_ENABLED = True  # True = afficher l'écran, False = mode rapide sans affichage
+DISPLAY_ENABLED = False  # True = afficher l'écran, False = mode rapide sans affichage
 
 
 CONFIG = {
@@ -15,11 +15,12 @@ CONFIG = {
 }
 
 # ========== SÉLECTION DE L'IA ==========
-IA_TYPE = "choreography"  # Change ici pour choisir l'IA !
+IA_TYPE = "neuro_ga"  # "choreography" ou "neuro_ga" Change ici pour choisir l'IA !
 
 """
 Tu peux maintenant changer facilement d'IA en modifiant juste cette variable :
-- `"choreography"` → Algorithme génétique
+- `"choreography"` → Algorithme génétique sur sequence d'actions (boucle ouverte)
+- `"neuro_ga"`     → Neuroevolution : algo génétique sur les poids d'un MLP (boucle fermee, reactive)
 - `"ppo"` → PPO (quand tu l'implémenteras)
 - `"dqn"` → DQN (quand tu l'implémenteras)
 - `"neat"` → NEAT (quand tu l'implémenteras)

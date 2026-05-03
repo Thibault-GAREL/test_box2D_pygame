@@ -1,5 +1,39 @@
-/.idea/test_box2D_pygame.iml
-/.idea/inspectionProfiles/profiles_settings.xml
-/.idea/modules.xml
-/.idea/misc.xml
-/.idea/.gitignore
+# IDE
+/.idea/
+.vscode/
+*.iml
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+
+# Environnements virtuels
+.venv/
+venv/
+env/
+
+# Outputs (entrainement, MLflow, modeles)
+/outputs/
+/mlruns/
+mlflow.db
+mlflow.db-journal
+
+# Donnees brutes / volumineuses
+/data/1-raw/*
+/data/2-processed/*
+/data/3-external/*
+!/data/1-raw/.gitkeep
+!/data/2-processed/.gitkeep
+!/data/3-external/.gitkeep
+
+# Fichiers d'environnement
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db

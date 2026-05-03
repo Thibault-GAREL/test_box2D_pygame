@@ -89,6 +89,14 @@ class IAChoreography(IABase):
             'action': 'contract' if is_contract else 'extend'
         }
 
+    def apply_to_quadruped(self, quadruped, action: int):
+        """Applique l'action choisie au quadrupede (relax all puis active un muscle)."""
+        for i in range(8):
+            quadruped.control_muscles(i, 'relax')
+        cmd = self.action_to_muscle_control(action)
+        if cmd['muscle'] is not None:
+            quadruped.control_muscles(cmd['muscle'], cmd['action'])
+
     def on_episode_end(self, distance: float, frames_survived: int, dog_state: Dict[str, Any]):
         fitness = distance * 100 + frames_survived * 0.5
         self.fitness_scores[self.current_individual] = fitness

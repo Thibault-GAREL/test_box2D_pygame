@@ -9,9 +9,20 @@ from core_engine.overlay import VisualOverlay
 from core_engine.parallax import ParallaxManager
 
 # ===== IMPORTS POUR L'IA =====
-from AI.ia_chore import IAChoreography
 import AI.config_ia as config_ia
-import AI.config_chore as config_chore
+
+# Dispatch dynamique selon IA_TYPE (defini dans AI/config_ia.py)
+if config_ia.IA_TYPE == "choreography":
+    from AI.ia_chore import IAChoreography as IAClass
+    import AI.config_chore as ia_config
+elif config_ia.IA_TYPE == "neuro_ga":
+    from AI.ia_gen import IAGenetic as IAClass
+    import AI.config_gen as ia_config
+else:
+    raise ValueError(
+        f"IA_TYPE inconnu : {config_ia.IA_TYPE!r}. "
+        "Valeurs supportees : 'choreography', 'neuro_ga'."
+    )
 
 
 def main():
@@ -107,11 +118,11 @@ def main():
 
     # ===== INITIALISATION DE L'IA =====
     if not HUMAN_CONTROL:
-        print("🤖 Mode IA ACTIVÉ")
-        ia = IAChoreography(config_chore)
+        print(f"🤖 Mode IA ACTIVÉ (type={config_ia.IA_TYPE})")
+        ia = IAClass(ia_config)
         # Essayer de charger une sauvegarde existante
         try:
-            ia.load(config_chore.TRAINING_CONFIG['save_file'])
+            ia.load(ia_config.TRAINING_CONFIG['save_file'])
             print(f"   IA chargée: Génération {ia.generation}")
         except FileNotFoundError:
             print("   Nouvelle IA créée")
@@ -161,7 +172,7 @@ def main():
                         print(f"⚡ AFFICHAGE DÉSACTIVÉ (mode rapide x{config_ia.CONFIG['speed_multiplier']})")
                 # Sauvegarder manuellement avec S
                 elif event.key == pygame.K_s and not HUMAN_CONTROL:
-                    ia.save(config_chore.TRAINING_CONFIG['save_file'])
+                    ia.save(ia_config.TRAINING_CONFIG['save_file'])
                     print(f"💾 Sauvegarde manuelle effectuée")
                 elif event.key == pygame.K_PLUS or event.key == pygame.K_KP_PLUS or event.key == pygame.K_EQUALS:
                     # Augmenter la vitesse
@@ -239,26 +250,15 @@ def main():
                 quadruped.control_muscles(7, 'extend')
         else:
             # ===== MODE IA: Contrôle automatique =====
-            # Récupérer le temps écoulé (tu dois ajouter un compteur)
             dog_state = {
                 'position': (quadruped.body.body.position.x, quadruped.body.body.position.y),
                 'velocity': (quadruped.body.body.linearVelocity.x, quadruped.body.body.linearVelocity.y),
                 'angle': quadruped.body.body.angle
             }
 
-            # Récupérer les activations musculaires
+            # Interface unifiee : chaque IA decide comment appliquer son action.
             action = ia.get_action(episode_time, dog_state)
-
-            muscle_command = ia.action_to_muscle_control(action)
-
-            if muscle_command['muscle'] is not None:
-                quadruped.control_muscles(muscle_command['muscle'], muscle_command['action'])
-
-            # Appliquer les activations (0.0-1.0) aux muscles
-            action = ia.get_action(episode_time, dog_state)  # → retourne un int (0-16)
-            muscle_command = ia.action_to_muscle_control(action)  # → convertit en {'muscle': X, 'action': 'contract'}
-            if muscle_command['muscle'] is not None:
-                quadruped.control_muscles(muscle_command['muscle'], muscle_command['action'])
+            ia.apply_to_quadruped(quadruped, action)
 
         if quadruped.is_upside_down():
             if display_active:
@@ -285,11 +285,11 @@ def main():
                     # Log de génération
                     ia.on_generation_end()
 
-                    if ia.generation >= config_chore.TRAINING_CONFIG['max_generations']:
+                    if ia.generation >= ia_config.TRAINING_CONFIG['max_generations']:
                         print(f"\n✅ Training terminé: {ia.generation} générations")
-                        ia.save(config_chore.TRAINING_CONFIG['save_file'])
+                        ia.save(ia_config.TRAINING_CONFIG['save_file'])
 
-                        if config_chore.TRAINING_CONFIG['auto_continue']:
+                        if ia_config.TRAINING_CONFIG['auto_continue']:
                             print(f"\n🔄 Démarrage du prochain training...")
                             ia.generation = 0
                             # Continue automatiquement (ne fait rien, la boucle continue)
@@ -346,7 +346,7 @@ def main():
             if not HUMAN_CONTROL:
                 font = pygame.font.Font(None, 24)
                 stats = ia.get_stats()
-                text = f"Gen {stats['generation']} | Individu {stats['current_individual'] + 1}/{config_chore.GA_CONFIG['population_size']} | Best {stats['best_distance']:.2f}m"
+                text = f"Gen {stats['generation']} | Individu {stats['current_individual'] + 1}/{ia_config.GA_CONFIG['population_size']} | Best {stats['best_distance']:.2f}m"
 
                 surface = font.render(text, True, (255, 255, 255))
                 bg_surf = pygame.Surface((surface.get_width() + 10, surface.get_height() + 5))
@@ -366,8 +366,11 @@ def main():
 
     # Sauvegarde finale
     if not HUMAN_CONTROL:
-        ia.save(config_chore.TRAINING_CONFIG['save_file'])
+        ia.save(ia_config.TRAINING_CONFIG['save_file'])
         print(f"\n💾 Sauvegarde finale effectuée")
+        # Cloture propre du tracking (MLflow notamment).
+        if hasattr(ia, "close"):
+            ia.close()
 
     # Fermer proprement Pygame
     display.quit()
