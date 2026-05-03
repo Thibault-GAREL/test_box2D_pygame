@@ -59,7 +59,7 @@ class NeuroGASettings(BaseSettings):
 
     # ----- MLflow -----
     # SQLite recommande par le skill ai-training (le file store est deprecated).
-    MLFLOW_TRACKING_URI: str = "sqlite:///outputs/logs/mlflow.db"
+    MLFLOW_TRACKING_URI: str = "sqlite:///mlflow.db"
     MLFLOW_EXPERIMENT_NAME: str = "quadruped-neuro-ga"
     MODEL_NAME: str = "neuro-ga"
 

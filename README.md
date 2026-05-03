@@ -4,15 +4,15 @@
 ![Box2D](https://img.shields.io/badge/Box-2.3.10-red.svg)
 ![Pygame](https://img.shields.io/badge/Pygame-2.6.1-red.svg)
 
-![License](https://img.shields.io/badge/license-MIT-green.svg)  
-![Contributions](https://img.shields.io/badge/contributions-welcome-orange.svg)  
+![License](https://img.shields.io/badge/license-MIT-green.svg)
+![Contributions](https://img.shields.io/badge/contributions-welcome-orange.svg)
 
 <p align="center">
   <img src="assets/logo.png" alt="logo">
 </p>
 
 
-## 📝 Project Description 
+## 📝 Project Description
 This project is a try to understand how to use box2D with pygame. 🦊🦊🦊
 
 To do so, I construct an AI able to control a quadruped, a fox with real physics, muscles, a world and a pretty low-poly design.
@@ -23,9 +23,9 @@ To learn data visualisation, I used Power BI to analyse in details !
 
 ---
 
-## ⚙️ Features  
+## ⚙️ Features
 
-Constructed : 
+Constructed :
 - Real physique with muscles, interation with **box2D** library.
 - A good-looking with pygame🦊.
 - An algorithm to select the best choreography.
@@ -73,7 +73,7 @@ Here it is juste a selection of the best choreography and adjusting time in cons
 
 ---
 
-## 📂 Repository structure  
+## 📂 Repository structure
 ```bash
 ├── test1_physique.py
 ├── test2_physique.py
@@ -84,8 +84,8 @@ Here it is juste a selection of the best choreography and adjusting time in cons
 
 ---
 
-## 💻 Run it on Your PC  
-Clone the repository and install dependencies:  
+## 💻 Run it on Your PC
+Clone the repository and install dependencies:
 ```bash
 git clone https://github.com/Thibault-GAREL/test_box2D_pygame.git
 cd Quadruped-AI
@@ -96,11 +96,13 @@ source .venv/bin/activate   # Linux / macOS
 
 pip install box2D pygame
 
-python test1_physique.py # Or the .py you want
+python main.py
+
+mlflow ui --backend-store-uri sqlite:///outputs/logs/mlflow.db
 ```
 ---
 
-## 📖 Inspiration / Sources  
+## 📖 Inspiration / Sources
 I code it without any help 😆 !
 
 Code created by me 😎, Thibault GAREL - [Github](https://github.com/Thibault-GAREL)
